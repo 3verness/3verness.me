@@ -1,4 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://everness.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.88.1 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Mon, 01 Nov 2021 10:51:23 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://everness.me/rss.xml"/><item><title>Hugo Shortcodes</title><link>https://everness.me/tech/hugo-shortcodes/</link><guid isPermaLink="true">https://everness.me/tech/hugo-shortcodes/</guid><pubDate>Tue, 15 Sep 2020 17:46:32 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;p>前些日子看上了hexo-butterfly主题的&lt;a href="">Note标签&lt;/a>，试了试Hugo上的&lt;a href="https://github.com/martignoni/hugo-notice">hugo-notice&lt;/a>觉得和主题不是很搭，于是决定用Hugo的Shortcodes自己实现一个。&lt;/p>
+<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://everness.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.88.1 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Mon, 01 Nov 2021 11:57:13 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://everness.me/rss.xml"/><item><title>年更百篇计划</title><link>https://everness.me/life/100-days-to-offload/</link><guid isPermaLink="true">https://everness.me/life/100-days-to-offload/</guid><pubDate>Mon, 01 Nov 2021 18:59:18 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;div class="note primary">
+&lt;p>这是&lt;a href="https://everness.me/life/100-days-to-offload/">年更百篇计划&lt;/a>的第1篇文章，目前已经完成&lt;strong>1/100&lt;/strong>篇文章。&lt;/p>
+&lt;/div>
+&lt;p>距离上一篇文章的发表，已经有一年有余了，并不是头脑空空没有点子可写，更多的是懒虫发作不想整理成文章，实在是怠惰呢。&lt;/p>
+&lt;p>细想来，我好像一直是一个“眼高手低”的人，脑中的想法只停留在计划表上，却从来没有实质性的进展，究其原因，主要在于缺乏动力。&lt;/p>
+&lt;p>前些日子网上冲浪，看到了一个&lt;a href="https://100daystooffload.com/">#100DaysToOffload&lt;/a>的项目，内容是在一年内更新100篇博客文章，其“内容无需深刻、养成记录习惯”的主题吸引了我，因此我开启了这个年更百篇的计划，希望通过规律频繁的博客更新，养成自己记录生活的习惯。&lt;/p>
+&lt;blockquote>
+&lt;p>Just. Write.&lt;/p>
+&lt;/blockquote></description><category domain="https://everness.me/life/">life</category><category domain="https://everness.me/tags/justwrite/">justwrite</category></item><item><title>Hugo Shortcodes</title><link>https://everness.me/tech/hugo-shortcodes/</link><guid isPermaLink="true">https://everness.me/tech/hugo-shortcodes/</guid><pubDate>Tue, 15 Sep 2020 17:46:32 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;p>前些日子看上了hexo-butterfly主题的&lt;a href="">Note标签&lt;/a>，试了试Hugo上的&lt;a href="https://github.com/martignoni/hugo-notice">hugo-notice&lt;/a>觉得和主题不是很搭，于是决定用Hugo的Shortcodes自己实现一个。&lt;/p>
 &lt;h2 id="内置shortcodes">内置Shortcodes&lt;/h2>
 &lt;p>Hugo已经内置了部分&lt;a href="https://gohugo.io/content-management/shortcodes/#use-hugos-built-in-shortcodes">Shortcodes&lt;/a>功能，如gist显示：&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
@@ -137,64 +145,7 @@ auto=https://music.163.com/#/song?id&amp;#61;32046766>
 &lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">{{&lt;span class="p">&amp;lt;&lt;/span> &lt;span class="nt">friend&lt;/span> &lt;span class="na">name&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;Everness&amp;#34;&lt;/span> &lt;span class="na">url&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;https://everness.me&amp;#34;&lt;/span> &lt;span class="na">logo&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;https://everness.me/favicon.ico&amp;#34;&lt;/span> &lt;span class="na">motto&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;To discover. To change.&amp;#34;&lt;/span> &lt;span class="p">&amp;gt;&lt;/span>}}
 &lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div>&lt;style type="text/css">
-.friendurl {
-text-decoration: none !important;
-}
-.friend {
-width: 56px !important;
-height: 56px !important;
-border-radius: 50%;
-border: 1px solid var(--color-contrast-lower);
-padding: 2px;
-margin-top: -10px !important;
-margin-left: 10px !important;
-background-color: var(--color-contrast-lower);
-}
-.friendblock {
-position: relative;
-left: 0; right: 0;
-width: 100%;
-height: 70px;
-line-height: 1.38;
-margin-top: 0px;
-margin-bottom: 10px;
-border-radius: 5px;
-background: var(--color-contrast-bg);
-box-shadow: 4px 4px 2px 1px #7DB9DE;
-overflow: hidden;
-}
-.friendblock:hover {
-background: var(--color-contrast-lower);
-}
-.friendblock:hover .friendblockleft img {
-transition: 1.6s!important;
--webkit-transition: 1.6s!important;
--moz-transition: 1.6s!important;
--o-transition: 1.6s!important;
--ms-transition: 1.6s!important;
-transform: rotate(360deg)!important;
--webkit-transform: rotate(360deg)!important;
--moz-transform: rotate(360deg)!important;
--o-transform: rotate(360deg)!important;
--ms-transform: rotate(360deg)!important;
-}
-.friendblockleft {
-width: 92px;
-float: left;
-margin-top: 15px;
-margin-right: 2px;
-}
-.friendblockright {
-margin-top: 10px;
-text-overflow: ellipsis;
-overflow: hidden;
-white-space: nowrap;
-}
-.friendname {
-color: #7DB9DE;
-font-size: larger;
-}&lt;/style>&lt;div class="friends">
+&lt;/div>&lt;div class="friends">
 &lt;p>&lt;a target="_blank" href=https://everness.me title=Everness class="friendurl">&lt;/p>
 &lt;div class="friendblock">
 &lt;div class="friendblockleft">
@@ -203,20 +154,8 @@ font-size: larger;
 &lt;div class="friendblockright">
 &lt;b class="friendname">Everness&lt;/b>&lt;br />To discover. To change.
 &lt;/div>
-&lt;/div>&lt;/a>
-&lt;/div></description><category domain="https://everness.me/tech/">tech</category><category domain="https://everness.me/tags/hugo/">hugo</category></item><item><title>LearnGo | 0 引子</title><link>https://everness.me/tech/learn-go-0/</link><guid isPermaLink="true">https://everness.me/tech/learn-go-0/</guid><pubDate>Tue, 15 Sep 2020 13:04:31 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;p>自进入大学以来，代码已经码了三年，期间接触过的语言种类繁多，C++、Java、Python、Matlab、C#，样样能写但样样不精，仔细想来，自己对于程序语言，始终局限于用而止步于懂。来到大四，恰好有了大量的空余时间，决定选择一门语言细细吃透。&lt;/p>
-&lt;h2 id="why-go">Why Go？&lt;/h2>
-&lt;p>萌生学习计划之初，考虑过将泛用性更强的C++作为学习对象，但奈何C++内容繁多，担心自己会知难而退，于是退而求其次敲定了风格相近且更为熟悉的Golang取而代之。&lt;/p>
-&lt;p>最早接触Golang，是由于其是Google的亲儿子，当时我对互联网编程饶有兴趣，于是跟着&lt;a href="https://www.flysnow.org/">飞雪无情&lt;/a>的&lt;a href="https://www.flysnow.org/2019/12/10/golang-gin-quick-start.html">Golang gin 实战&lt;/a>写了一个简单的CURD&lt;a href="https://git.everness.me/Everness/trace_api">后端API&lt;/a>。在开发的过程中，我喜欢上了Golang的简洁，从此一发不可收拾，现在Go已经替代了Python成为了我的小工具首选语言。&lt;/p>
-&lt;p>相较C系，Go加入了垃圾回收，防止了内存泄漏，同时语法也更加简单，源码可读性高；不过，Go也有着不支持泛型的致命缺陷，使得数据结构的实现变得困难。&lt;/p>
-&lt;h2 id="how-to-go">How to Go？&lt;/h2>
-&lt;p>按照&lt;a href="https://talkgo.org/">TalkGo&lt;/a>的建议，我将学习计划分为以下三个方向：&lt;/p>
-&lt;ul>
-&lt;li>常用库使用&lt;/li>
-&lt;li>常用库实现&lt;/li>
-&lt;li>项目开发&lt;/li>
-&lt;/ul>
-&lt;p>在最初的一段时间，我将专注于标准库的&lt;a href="https://golang.org/pkg/">文档&lt;/a>，学习&lt;code>fmt&lt;/code>、&lt;code>string&lt;/code>、&lt;code>test&lt;/code>等标准库的使用，在有一定基础后，我会选择&lt;code>gin&lt;/code>框架进行源码阅读，了解其实现方式，同时穿插项目的仿写进行巩固提高。我希望这个系列可以保持2-3天的更新频率，并能持续三个月以上的时间。如果系列文章中出现错误，还望读者多多指正。&lt;/p></description><category domain="https://everness.me/tech/">tech</category><category domain="https://everness.me/tags/golang/">golang</category><category domain="https://everness.me/tags/learn/">learn</category></item><item><title>Windows下的网卡分流</title><link>https://everness.me/tech/route-on-windows/</link><guid isPermaLink="true">https://everness.me/tech/route-on-windows/</guid><pubDate>Mon, 17 Aug 2020 10:38:28 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="引子">引子&lt;/h2>
+&lt;/div>
+&lt;/div></description><category domain="https://everness.me/tech/">tech</category><category domain="https://everness.me/tags/hugo/">hugo</category></item><item><title>Windows下的网卡分流</title><link>https://everness.me/tech/route-on-windows/</link><guid isPermaLink="true">https://everness.me/tech/route-on-windows/</guid><pubDate>Mon, 17 Aug 2020 10:38:28 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="引子">引子&lt;/h2>
 &lt;p>身在学校，经常需要在限流校园网和宿舍宽带间反复横跳，每次都要手动切换甚是麻烦，因此研究了下Windows下的路由表，希望能一劳永逸的解决网络分流问题。&lt;/p>
 &lt;p>我的网络环境及需求如下：&lt;/p>
 &lt;ul>
