@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://oi-io.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.94.2 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Thu, 17 Mar 2022 03:36:44 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://oi-io.me/rss.xml"/><item><title>Openwrt从入门到入土</title><link>https://oi-io.me/tech/openwrt-start-to-end/</link><guid isPermaLink="true">https://oi-io.me/tech/openwrt-start-to-end/</guid><pubDate>Wed, 16 Mar 2022 22:31:08 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;div class="note primary">
+<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://oi-io.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.96.0 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Tue, 29 Mar 2022 05:51:59 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://oi-io.me/rss.xml"/><item><title>Openwrt从入门到入土</title><link>https://oi-io.me/tech/openwrt-start-to-end/</link><guid isPermaLink="true">https://oi-io.me/tech/openwrt-start-to-end/</guid><pubDate>Wed, 16 Mar 2022 22:31:08 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;div class="note primary">
 &lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第3篇文章，目前已经完成&lt;strong>3/100&lt;/strong>篇文章。&lt;/p>
 &lt;/div>
 &lt;p>曾经向往连上路由器就能科学上网的透明代理体验，正好前些日子为了同步笔记本与工位台式机的资料，从校园二手平台上花88入了台小米路由器4a千兆版，获得了一次折腾的机会，但由于种种原因最终拔草弃坑，谨以此文记录一下折腾的过程。&lt;/p>
@@ -159,7 +159,7 @@
 &lt;/div>&lt;p>在这种情况下，tag中参数的访问与之前相同，其内容通过&lt;code>.Inner&lt;/code>访问，如果需要对内容进行Markdown解析，可以使用&lt;code>markdownify&lt;/code>函数。&lt;/p>
 &lt;h2 id="my-shortcodes">My Shortcodes&lt;/h2>
 &lt;h3 id="安装">安装&lt;/h3>
-&lt;div class="note warning">&lt;p>该Shortcodes包仅支持MemE主题。&lt;/p>&lt;/div>
+&lt;div class="note warning">&lt;p>该Shortcodes包仅支持&lt;a href="https://github.com/reuixiy/hugo-theme-meme">MemE&lt;/a>主题。&lt;/p>&lt;/div>
 &lt;ul>
 &lt;li>
 &lt;p>将短代码仓库添加至&lt;code>theme&lt;/code>文件夹&lt;/p>
@@ -168,7 +168,7 @@
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
 &lt;/span>&lt;/code>&lt;/pre>&lt;/td>
 &lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">git clone https://git.everness.me/Everness/shortcodes.git themes/shortcodes
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">git clone https://github.com/3verness/shortcodes.git themes/shortcodes
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
 &lt;/div>&lt;/li>
@@ -180,6 +180,17 @@
 &lt;/span>&lt;/code>&lt;/pre>&lt;/td>
 &lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="nx">theme&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;shortcodes&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;meme&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>在&lt;code>assets/scss/custom/_custom.scss&lt;/code>文件中添加：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-scss" data-lang="scss">&lt;span class="line">&lt;span class="cl">&lt;span class="k">@import&lt;/span> &lt;span class="s2">&amp;#34;shortcodes/shortcodes&amp;#34;&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
 &lt;/div>&lt;/li>
@@ -259,17 +270,17 @@ auto=https://music.163.com/#/song?id&amp;#61;32046766>
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
 &lt;/span>&lt;/code>&lt;/pre>&lt;/td>
 &lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">{{&lt;span class="p">&amp;lt;&lt;/span> &lt;span class="nt">friend&lt;/span> &lt;span class="na">name&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;Everness&amp;#34;&lt;/span> &lt;span class="na">url&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;https://everness.me&amp;#34;&lt;/span> &lt;span class="na">logo&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;https://everness.me/favicon.ico&amp;#34;&lt;/span> &lt;span class="na">motto&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;To discover. To change.&amp;#34;&lt;/span> &lt;span class="p">&amp;gt;&lt;/span>}}
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">{{&lt;span class="p">&amp;lt;&lt;/span> &lt;span class="nt">friend&lt;/span> &lt;span class="na">name&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;3verness&amp;#34;&lt;/span> &lt;span class="na">url&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;https://oi-io.me&amp;#34;&lt;/span> &lt;span class="na">logo&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;https://oi-io.me/favicon.ico&amp;#34;&lt;/span> &lt;span class="na">motto&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;To discover. To change.&amp;#34;&lt;/span> &lt;span class="p">&amp;gt;&lt;/span>}}
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
 &lt;/div>&lt;div class="friends">
-&lt;p>&lt;a target="_blank" href=https://everness.me title=Everness class="friendurl">&lt;/p>
+&lt;p>&lt;a target="_blank" href=https://oi-io.me title=3verness class="friendurl">&lt;/p>
 &lt;div class="friendblock">
 &lt;div class="friendblockleft">
-&lt;img class="friend" src=https://everness.me/favicon.ico />
+&lt;img class="friend" src=https://oi-io.me/favicon.ico />
 &lt;/div>
 &lt;div class="friendblockright">
-&lt;b class="friendname">Everness&lt;/b>&lt;br />To discover. To change.
+&lt;b class="friendname">3verness&lt;/b>&lt;br />To discover. To change.
 &lt;/div>
 &lt;/div>
 &lt;/div></description><category domain="https://oi-io.me/tech/">tech</category><category domain="https://oi-io.me/tags/hugo/">hugo</category></item><item><title>Windows下的网卡分流</title><link>https://oi-io.me/tech/route-on-windows/</link><guid isPermaLink="true">https://oi-io.me/tech/route-on-windows/</guid><pubDate>Mon, 17 Aug 2020 10:38:28 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="引子">引子&lt;/h2>
