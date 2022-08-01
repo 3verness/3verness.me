@@ -1,5 +1,178 @@
-<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://oi-io.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.101.0 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Mon, 25 Jul 2022 05:39:58 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://oi-io.me/rss.xml"/><item><title>STM32开发记·壹·编译</title><link>https://oi-io.me/tech/stm32-dev-1/</link><guid isPermaLink="true">https://oi-io.me/tech/stm32-dev-1/</guid><pubDate>Mon, 25 Jul 2022 10:01:24 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;div class="note primary">
-&lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第5篇文章，目前已经完成&lt;strong>5/100&lt;/strong>篇文章。&lt;/p>
+<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://oi-io.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.101.0 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Mon, 01 Aug 2022 13:46:10 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://oi-io.me/rss.xml"/><item><title>走进Torrent</title><link>https://oi-io.me/tech/what-is-torrent/</link><guid isPermaLink="true">https://oi-io.me/tech/what-is-torrent/</guid><pubDate>Mon, 01 Aug 2022 15:04:04 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="torrent是什么">Torrent是什么？&lt;/h2>
+&lt;p>Torrent是BitTorrent协议的一个索引文件，其本意是“洪流”，我们常把它叫做“种子”，大概是播种一颗“种子”，就能收获一组文件的缘故吧。&lt;/p>
+&lt;p>若想理解Torrent，首先要了解BT协议是如何工作的。BT协议是最为经典的点对点（peer-to-peer，P2P）协议，其原理是将下载文件分为指定大小的区块，下载时，客户端携带索引文件中包含的特征码向Tracker服务器发出请求，Tracker服务器回复同样请求该文件信息的其他用户地址，随后客户端向其他用户发起连接，并相互交换下载完成的区块，并依照索引文件中的文件结构构造为原始文件，最终实现完整文件的快速下载。&lt;/p>
+&lt;h2 id="torrent中有什么">Torrent中有什么？&lt;/h2>
+&lt;h3 id="bencode">Bencode&lt;/h3>
+&lt;p>Torrent实际上是一个文本文件，当使用编辑器打开时，会发现诸如&lt;code>d8:announce34:http://mgtracker.org:2710/announce&lt;/code>一类的元数据信息以及一长串的乱码。&lt;/p>
+&lt;p>让我们先从元数据讲起，Torrent使用一种名为&lt;a href="https://zh.m.wikipedia.org/zh-hans/Bencode">Bencode&lt;/a>的编码方式，其支持字符串、整型数、列表和字典四种数据类型，最大的特点是会使用一个标识类型的字符与&lt;code>e&lt;/code>包裹所存数据，具体如下：&lt;sup id="fnref:1">&lt;a href="https://oi-io.me/tech/what-is-torrent/#fn:1" class="footnote-ref" role="doc-noteref">1&lt;/a>&lt;/sup>&lt;/p>
+&lt;ul>
+&lt;li>字符串：无需包裹，但需要在字符串前添加长度，组成&lt;code>{内容长度}:{内容}&lt;/code>的形式，例如&lt;code>7:bencode&lt;/code>；&lt;/li>
+&lt;li>整型数：使用&lt;code>i&lt;/code>与&lt;code>e&lt;/code>包裹，例如&lt;code>i4e&lt;/code>、&lt;code>i-16e&lt;/code>；&lt;/li>
+&lt;li>列表：使用&lt;code>l&lt;/code>与&lt;code>e&lt;/code>包裹，随后的每一条数据均为链表中的一个值，一个列表中可包含多种数据类型，例如&lt;code>l1:ai4ee&lt;/code>对应&lt;code>[&amp;quot;a&amp;quot;, 4]&lt;/code>；&lt;/li>
+&lt;li>字典：使用&lt;code>d&lt;/code>与&lt;code>e&lt;/code>包裹，随后数据以&lt;code>键值键值键值...&lt;/code>的方式存放，键与值的数据类型同样不做限制，例如&lt;code>d1:ai1ei2e1:be&lt;/code>对应&lt;code>{&amp;quot;a&amp;quot;: 1, 2: &amp;quot;b&amp;quot;}&lt;/code>。&lt;/li>
+&lt;/ul>
+&lt;p>使用解码工具解码后，Torrrent文件的内容就很直观了。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;announce&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;udp://tracker.openbittorrent.com:80/announce&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;announce-list&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;udp://tracker.openbittorrent.com:80/announce&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;udp://tracker.publicbt.com:80/announce&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;comment&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Big Buck Bunny, Sunflower version&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;created by&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;uTorrent/3320&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;creation date&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">1387308159&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;info&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;length&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">355856562&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;name&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;bbb_sunflower_1080p_60fps_normal.mp4&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;piece length&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">524288&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;pieces&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;&amp;lt;hex&amp;gt;99 71 9B 2C 2E AA ...&amp;lt;/hex&amp;gt;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="torrent内容">Torrent内容&lt;/h3>
+&lt;p>一个完整的Torrent文件需要包含以下内容：&lt;sup id="fnref:2">&lt;a href="https://oi-io.me/tech/what-is-torrent/#fn:2" class="footnote-ref" role="doc-noteref">2&lt;/a>&lt;/sup>&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>announce&lt;/code>：Tracker服务器地址；&lt;/li>
+&lt;li>&lt;code>announce-list&lt;/code>：一系列的备用Tracker服务器地址，由于各个服务器之间并不会同步信息，客户端通常会向多个甚至全部Tracker服务器均发送请求；&lt;/li>
+&lt;li>&lt;code>comment&lt;/code>：用户添加的附加说明；&lt;/li>
+&lt;li>&lt;code>creation date&lt;/code>：发布日期的Unix时间戳；&lt;/li>
+&lt;li>&lt;code>created by&lt;/code>：生成种子的软件信息；&lt;/li>
+&lt;li>&lt;code>info&lt;/code>：种子包含的文件信息。&lt;/li>
+&lt;/ul>
+&lt;p>&lt;code>info&lt;/code>是种子中最为关键的部分，客户端向Tracker服务器发出请求时，就使用SHA1哈希值作为种子的特征识别码，换言之，只要两个种子的&lt;code>info&lt;/code>部分完全相同，其余条目的更改不会影响该种子原文件的下载。&lt;code>info&lt;/code>中包含的内容分为两部分，一部分为区块信息，另一部分为文件结构。&lt;/p>
+&lt;p>区块信息包括：&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>piece length&lt;/code>：每个区块包含的字节数，即分割区块的大小；&lt;/li>
+&lt;li>&lt;code>pieces&lt;/code>：各区块的20字节SHA1哈希值，其长度对应区块总数。&lt;/li>
+&lt;/ul>
+&lt;p>单文件的种子与包含多个文件的种子的文件结构部分略有差异，仅有单文件的文件结构较为简单，包括：&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>name&lt;/code>：发布者建议的文件名称；&lt;/li>
+&lt;li>&lt;code>length&lt;/code>：文件的字节长度，即文件大小。&lt;/li>
+&lt;/ul>
+&lt;p>多文件的&lt;code>info&lt;/code>部分如下所示：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;info&amp;#34;&lt;/span>&lt;span class="err">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;files&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;length&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">662807209&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;path&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;[DMG&amp;amp;VCB-Studio] Aquatope of White Sand [01][1080p][x264_aac][tc].mp4&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;length&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">501972919&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;path&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;[DMG&amp;amp;VCB-Studio] Aquatope of White Sand [02][1080p][x264_aac][tc].mp4&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>&lt;span class="err">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;name&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;[DMG&amp;amp;VCB-Studio] Aquatope of White Sand [1080p][tc]&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;piece length&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">4194304&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;pieces&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;&amp;lt;hex&amp;gt;9B 46 57 ...&amp;lt;/hex&amp;gt;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>其文件结构部分包括：&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>name&lt;/code>：发布者建议的文件根目录名称；&lt;/li>
+&lt;li>&lt;code>files&lt;/code>：文件列表；
+&lt;ul>
+&lt;li>&lt;code>length&lt;/code>：文件的字节长度，即文件大小；&lt;/li>
+&lt;li>&lt;code>path&lt;/code>：发布者建议的文件路径。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;p>值得注意的是，文件路径是通过列表储存的，各级目录名称作为&lt;code>path&lt;/code>中的一条，例如&lt;code>a/b/c&lt;/code>应储存为&lt;code>&amp;quot;path&amp;quot;: [&amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;, &amp;quot;c&amp;quot;]&lt;/code>。&lt;/p>
+&lt;p>随着BT协议的不断发展，Torrent文件也开始包含更多信息，例如&lt;code>nodes&lt;/code>字段对DHT表的支持和&lt;code>url-list&lt;/code>对可用HTTP下载地址的支持&lt;sup id="fnref:3">&lt;a href="https://oi-io.me/tech/what-is-torrent/#fn:3" class="footnote-ref" role="doc-noteref">3&lt;/a>&lt;/sup>，在此不再详述。&lt;/p>
+&lt;h3 id="magnet链">Magnet链&lt;/h3>
+&lt;p>Magnet是BitTorrent的另一种索引方式，相较Torrent文件，Magnet基于DHT网络实现，不依赖Tracker服务器，能够直接在DHT网络中寻址，连接用户开始文件下载。因此磁力链理论上只需要一个特征码即可开始文件下载，例如&lt;code>magnet:?xt=urn:btih:16c461b2a2437e6b6537d790ca41a9413734e8ad&lt;/code>，&lt;code>xt&lt;/code>为eXact Topic缩写，是磁力链的特征码，&lt;code>urn&lt;/code>表示Universe Resource Name，&lt;code>btih&lt;/code>则表示使用BitTorrent的散列函数，除&lt;code>btih&lt;/code>外，Magnet链也可以使用&lt;code>ed2k&lt;/code>、&lt;code>sha1&lt;/code>、&lt;code>md5&lt;/code>等多种散列方式。&lt;/p>
+&lt;p>Magnet可以扩展更多参数&lt;sup id="fnref:4">&lt;a href="https://oi-io.me/tech/what-is-torrent/#fn:4" class="footnote-ref" role="doc-noteref">4&lt;/a>&lt;/sup>，常见的如：&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>dn&lt;/code>：显示名称；&lt;/li>
+&lt;li>&lt;code>xl&lt;/code>：文件大小；&lt;/li>
+&lt;li>&lt;code>kt&lt;/code>：关键字；&lt;/li>
+&lt;li>&lt;code>tr&lt;/code>：Tracker服务器。&lt;/li>
+&lt;/ul>
+&lt;p>与Torrent文件相比，Magnet不需要客户端访问Tracker服务器，理论上只要你可访问的网段中有正在下载的用户，你便可以开启下载，因此在下载墙外资源时十分好用。不过，无Tracker的Magnet链在开始下载时需要较长的时间从网络中的其他用户处获取元数据，因此大多数资源发布时都会提供带Tracker地址的磁力链，这种下载方式就和使用Torrent文件时无异了。&lt;/p>
+&lt;h2 id="torrent安全么">Torrent安全么？&lt;/h2>
+&lt;p>在BT下载协议中，每位用户既是下载者，也是上传者，那么，如何保证文件的完整性和一致性呢？可以留意到Torrent中&lt;code>pieces&lt;/code>部分提供了每个区块的散列值，因此当客户端每完成一个区块的下载时，都会计算该区块的散列值并与记录值比对，若不同，则丢弃重新下载。&lt;/p>
+&lt;p>那么，如果构建一个与待下载区块同大小的恶意区块，并且两区块拥有同样的散列值，那么其他下载者在获得该恶意区块时可以成功通过校验污染目标机器。&lt;/p>
+&lt;p>&lt;img src="https://awesome-image.oss-cn-beijing.aliyuncs.com/202208012033116.webp" alt="">&lt;/p>
+&lt;p>从理论上讲，针对现在使用的SHA1散列算法，该种攻击方式是可行的；不过幸运的是，现有破解算法的代价十分高昂，CWI与谷歌安全团队在2017年发布了&lt;a href="https://shattered.io/">SHA1散列碰撞算法&lt;/a>，并以此生成了两份大小相同、内容不同的同散列值文件，此次碰撞攻击进行了九百万亿次散列计算，需要6500年的单CPU计算时间与110年的单GPU计算时间。&lt;sup id="fnref:5">&lt;a href="https://oi-io.me/tech/what-is-torrent/#fn:5" class="footnote-ref" role="doc-noteref">5&lt;/a>&lt;/sup>这一数字也许对个人计算机来说过于惊人，但对于控制大量肉鸡的黑客与国家而言仍然是可行的，也许Torrent是时候更换更为安全的校验方式了。&lt;/p>
+&lt;p>&lt;img src="https://awesome-image.oss-cn-beijing.aliyuncs.com/202208012132954.webp" alt="image-20220801213236244">&lt;/p>
+&lt;div class="footnotes" role="doc-endnotes">
+&lt;hr>
+&lt;ol>
+&lt;li id="fn:1">
+&lt;p>&lt;a href="https://zh.m.wikipedia.org/zh-hans/Bencode">https://zh.m.wikipedia.org/zh-hans/Bencode&lt;/a>&amp;#160;&lt;a href="https://oi-io.me/tech/what-is-torrent/#fnref:1" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li id="fn:2">
+&lt;p>&lt;a href="https://fileformats.fandom.com/wiki/Torrent_file">https://fileformats.fandom.com/wiki/Torrent_file&lt;/a>&amp;#160;&lt;a href="https://oi-io.me/tech/what-is-torrent/#fnref:2" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li id="fn:3">
+&lt;p>&lt;a href="https://en.wikipedia.org/wiki/Torrent_file#Extensions">https://en.wikipedia.org/wiki/Torrent_file#Extensions&lt;/a>&amp;#160;&lt;a href="https://oi-io.me/tech/what-is-torrent/#fnref:3" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li id="fn:4">
+&lt;p>&lt;a href="https://zh.wikipedia.org/zh-cn/%E7%A3%81%E5%8A%9B%E9%93%BE%E6%8E%A5">https://zh.wikipedia.org/zh-cn/%E7%A3%81%E5%8A%9B%E9%93%BE%E6%8E%A5&lt;/a>&amp;#160;&lt;a href="https://oi-io.me/tech/what-is-torrent/#fnref:4" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li id="fn:5">
+&lt;p>&lt;a href="https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html">https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html&lt;/a>&amp;#160;&lt;a href="https://oi-io.me/tech/what-is-torrent/#fnref:5" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;/div></description><category domain="https://oi-io.me/tech/">tech</category><category domain="https://oi-io.me/tags/justwrite/">justwrite</category><category domain="https://oi-io.me/tags/torrent/">torrent</category></item><item><title>STM32开发记·壹·编译</title><link>https://oi-io.me/tech/stm32-dev-1/</link><guid isPermaLink="true">https://oi-io.me/tech/stm32-dev-1/</guid><pubDate>Mon, 25 Jul 2022 10:01:24 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;div class="note primary">
+&lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第5篇文章，目前已经完成&lt;strong>6/100&lt;/strong>篇文章。&lt;/p>
 &lt;/div>
 &lt;p>外出实习，需要使用STM32开发板，开此系列文章记录萌新摸索的过程。&lt;/p>
 &lt;h2 id="工具准备">工具准备&lt;/h2>
@@ -200,7 +373,7 @@
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
 &lt;/div></description><category domain="https://oi-io.me/tech/">tech</category><category domain="https://oi-io.me/tags/justwrite/">justwrite</category><category domain="https://oi-io.me/tags/stm32/">stm32</category><category domain="https://oi-io.me/tags/vscode/">vscode</category></item><item><title>从Syncthing谈文件同步工具</title><link>https://oi-io.me/tech/syncthing-and-sync-tools/</link><guid isPermaLink="true">https://oi-io.me/tech/syncthing-and-sync-tools/</guid><pubDate>Mon, 02 May 2022 13:39:08 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;div class="note primary">
-&lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第4篇文章，目前已经完成&lt;strong>5/100&lt;/strong>篇文章。&lt;/p>
+&lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第4篇文章，目前已经完成&lt;strong>6/100&lt;/strong>篇文章。&lt;/p>
 &lt;/div>
 &lt;p>重装系统安装&lt;a href="https://www.microsoft.com/en-us/download/search.aspx?q=synctoy">SyncToy&lt;/a>时，发现巨硬已经把它从Download Center中移除，为了同步工位台式机和笔记本上的资料，我开始寻找替代品，最终发现了&lt;a href="https://syncthing.net/">Syncthing&lt;/a>这一神器。&lt;/p>
 &lt;h2 id="优点">优点&lt;/h2>
@@ -235,7 +408,7 @@
 &lt;p>发现服务器的功能是注册和分发地址。当一台设备启动Syncthing时，会生成一个UID作为设备标识，当全局发现功能启用时，客户端会每隔30分钟向设置的全局发现服务器告知在线状态，同时，当添加远程设备时，客户端也会向发现服务器查询该设备的在线状态与网络地址。&lt;/p>
 &lt;p>Syncthing的发现服务器仅提供地址信息，既不转发数据也不提供中转，所有的数据传输均是端到端的。对于拥有公网地址或处于同一NAT下的设备，Syncthing可以通过ip直连，而对于没有公网地址的设备，则需要中转服务器进行流量转发。&lt;/p>
 &lt;p>当前，Syncthing的转发机制是首先尝试直连，直连失败时立刻回落到流量转发，这意味着仅当两台设备均处于同一NAT或公网时才能直连，否则所有流量将通过中转服务器转发，这就给中转服务器带宽带来了很大的压力。实际上，即便两台设备位于不同NAT下，大多数场景下仍然可以通过“&lt;a href="https://bford.info/pub/net/p2pnat/">打洞&lt;/a>”的方式创建点对点的连接。如果中转服务器可以集成这一功能，打洞失败再回落中转，数据传输将不再受中转服务器线路的影响，体验将会更上一层楼。&lt;/p></description><category domain="https://oi-io.me/tech/">tech</category><category domain="https://oi-io.me/tags/justwrite/">justwrite</category><category domain="https://oi-io.me/tags/syncthings/">syncthings</category><category domain="https://oi-io.me/tags/tools/">tools</category></item><item><title>Openwrt从入门到入土</title><link>https://oi-io.me/tech/openwrt-start-to-end/</link><guid isPermaLink="true">https://oi-io.me/tech/openwrt-start-to-end/</guid><pubDate>Wed, 16 Mar 2022 22:31:08 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;div class="note primary">
-&lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第3篇文章，目前已经完成&lt;strong>5/100&lt;/strong>篇文章。&lt;/p>
+&lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第3篇文章，目前已经完成&lt;strong>6/100&lt;/strong>篇文章。&lt;/p>
 &lt;/div>
 &lt;p>曾经向往连上路由器就能科学上网的透明代理体验，正好前些日子为了同步笔记本与工位台式机的资料，从校园二手平台上花88入了台小米路由器4a千兆版，获得了一次折腾的机会，但由于种种原因最终拔草弃坑，谨以此文记录一下折腾的过程。&lt;/p>
 &lt;h2 id="准备工作">准备工作&lt;/h2>
@@ -296,7 +469,7 @@
 &lt;p>同时和tg群里的小伙伴们交流了解到，对于这种路由器来说，运行Xray都是勉勉强强，Clash更是毫无可能，遂决定弃坑，也许之后有了树莓派做旁路由之后再来折腾。&lt;/p>
 &lt;h2 id="后记">后记&lt;/h2>
 &lt;p>不得不承认自己现在已经过了喜欢折腾的年纪，不同于之前的刨根问底，现在的需求变成了方便就好、能用就行，曾经折腾的乐趣如今只剩下了麻烦，大概我已经不再向往Geek也不再热爱技术了。&lt;/p></description><category domain="https://oi-io.me/tech/">tech</category><category domain="https://oi-io.me/tags/justwrite/">justwrite</category><category domain="https://oi-io.me/tags/openwrt/">openwrt</category></item><item><title>数码装备·本科篇</title><link>https://oi-io.me/life/edc-undergraduate/</link><guid isPermaLink="true">https://oi-io.me/life/edc-undergraduate/</guid><pubDate>Sun, 14 Nov 2021 20:50:05 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;div class="note primary">
-&lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第2篇文章，目前已经完成&lt;strong>5/100&lt;/strong>篇文章。&lt;/p>
+&lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第2篇文章，目前已经完成&lt;strong>6/100&lt;/strong>篇文章。&lt;/p>
 &lt;/div>
 &lt;p>本科结束，收拾东西搬离宿舍的时候，把身边所有在用的电子产品拍了个照，记录下财务不自由的穷孩子的日常装备吧~&lt;/p>
 &lt;p>&lt;img src="https://awesome-image.oss-cn-beijing.aliyuncs.com/202111151940980.jpg" alt="搬宿舍前的全家福">&lt;/p>
@@ -352,7 +525,7 @@
 &lt;p>以及并不是数码产品，从高中到现在丢过无数支的百乐V5。&lt;/p>
 &lt;hr>
 &lt;p>现在采购的时候，由于贫穷，已经从买贵的向买够用的转变了。能根据自己的需求选择电子产品，算是不小的进步吧。三年后又一次搬家时，我的装备又会如何呢~&lt;/p></description><category domain="https://oi-io.me/life/">life</category><category domain="https://oi-io.me/tags/justwrite/">justwrite</category></item><item><title>年更百篇计划</title><link>https://oi-io.me/life/just-write/</link><guid isPermaLink="true">https://oi-io.me/life/just-write/</guid><pubDate>Mon, 01 Nov 2021 18:59:18 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;div class="note primary">
-&lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第1篇文章，目前已经完成&lt;strong>5/100&lt;/strong>篇文章。&lt;/p>
+&lt;p>这是&lt;a href="https://oi-io.me/life/just-write/">年更百篇计划&lt;/a>的第1篇文章，目前已经完成&lt;strong>6/100&lt;/strong>篇文章。&lt;/p>
 &lt;/div>
 &lt;p>距离上一篇文章的发表，已经有一年有余了，并不是头脑空空没有点子可写，更多的是懒虫发作不想整理成文章，实在是怠惰呢。&lt;/p>
 &lt;p>细想来，我好像一直是一个“眼高手低”的人，脑中的想法只停留在计划表上，却从来没有实质性的进展，究其原因，主要在于缺乏动力。&lt;/p>
