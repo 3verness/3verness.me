@@ -1,4 +1,241 @@
-<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.111.2 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Mon, 06 Mar 2023 12:43:35 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>一劳永逸解决端口封禁问题</title><link>https://ioyoi.me/tech/port-blocking/</link><guid isPermaLink="true">https://ioyoi.me/tech/port-blocking/</guid><pubDate>Mon, 27 Feb 2023 10:52:10 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="引子">引子&lt;/h2>
+<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.111.3 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Tue, 14 Mar 2023 04:54:53 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>PYNQ学习·第一个IP核</title><link>https://ioyoi.me/tech/pynq-1-verilog-ip/</link><guid isPermaLink="true">https://ioyoi.me/tech/pynq-1-verilog-ip/</guid><pubDate>Tue, 14 Mar 2023 12:21:12 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;p>最近我开始学习PYNQ板和Vivado开发流程，与之前接触的Quartus开发流程不同，Vivado开发主要集中在IP核的设计和集成上，通过IP核的调用连接实现目标功能。在查阅资料的过程中，我发现大部分PYNQ的入门教程都使用HLS高级语言综合作为起步项目，而基于Verilog等RTL原语开发的教程较少。此外，一些教程已经过时，不再适用于当前的软件版本。因此，我写下这篇文章，记录我作为新手小白的学习经验。&lt;/p>
+&lt;div class="note success">&lt;p>本文教程适用于Vivado 2022.1，并在搭载v3.0.1镜像的PYNQ-Z1板上验证可用。&lt;/p>&lt;/div>
+&lt;h2 id="前期准备">前期准备&lt;/h2>
+&lt;p>关于PYNQ板的连接和启动，官网已有&lt;a href="https://pynq.readthedocs.io/en/latest/getting_started/pynq_z1_setup.html">详细说明&lt;/a>，这里不再赘述。&lt;/p>
+&lt;p>为在Vivado中导入PYNQ Z1开发板，需要先下载&lt;a href="https://raw.githubusercontent.com/cathalmccabe/pynq-z1_board_files/master/pynq-z1.zip">开发板信息文件&lt;/a>，并将其放置在&lt;code>{Vivado Dir}\data\xhub\boards\XilinxBoardStore\boards\Xilinx&lt;/code>目录下。&lt;/p>
+&lt;div class="note info">&lt;p>如果使用2021.2或更早版本的Vivado，板信息文件则存放在&lt;code>{Vivado Dir}\data\boards&lt;/code>目录下。&lt;/p>&lt;/div>
+&lt;h2 id="创建ip模板">创建IP模板&lt;/h2>
+&lt;p>在Vivado工程中选择工具栏中的&lt;code>Tools-&amp;gt;Create and Package New IP&lt;/code>，在弹出的窗口中使用&lt;code>Create a new AXI4 Peripheral&lt;/code>创建一个带有AXI4接口的IP核模板，并配置接口参数，这里以功能较为简单的AXI4 Lite接口作为演示，最后选择&lt;code>Edit IP&lt;/code>打开生成的IP核工程，如果选择了其他选项，可以从Project Manager中的IP Catalog找到该工程，右键选择&lt;code>Edit in IP Packager&lt;/code>打开该IP核。&lt;/p>
+&lt;p>&lt;img src="https://img.ioyoi.me/202303141228052.webp" alt="image-20230313190958912">&lt;/p>
+&lt;p>&lt;img src="https://img.ioyoi.me/202303141228394.webp" alt="image-20230313190917622">&lt;/p>
+&lt;p>模板工程中含有两个文件，其中&lt;code>project.v&lt;/code>文件中定义了AXI总线的接口并例化了一个支持AXI总线通信功能的模块，&lt;code>project_AXI.v&lt;/code>文件具体实现了AXI总线功能，为了快速入门，我们重点关注其实现用户逻辑功能的寄存器操作部分，其中，最核心的寄存器是四个带有&lt;code>slv&lt;/code>前缀的寄存器（寄存器数量由之前接口设置中的&lt;code>Number of Registers&lt;/code>决定）与输出数据的&lt;code>reg_data_out&lt;/code>，模板实现的默认逻辑为：当向地址&lt;code>X&lt;/code>写入数据时，数据会保存在对应的&lt;code>slv_regX&lt;/code>中，而从地址&lt;code>X&lt;/code>读出数据时，会读取到&lt;code>slv_regX&lt;/code>中的数据；因此我们只需要对这些寄存器进行操作就可以借由模板中的方法实现通信的功能。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-verilog" data-lang="verilog">&lt;span class="line">&lt;span class="cl"> &lt;span class="p">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kt">reg&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">C_S_AXI_DATA_WIDTH&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mh">1&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="mh">0&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">slv_reg0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kt">reg&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">C_S_AXI_DATA_WIDTH&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mh">1&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="mh">0&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">slv_reg1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kt">reg&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">C_S_AXI_DATA_WIDTH&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mh">1&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="mh">0&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">slv_reg2&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kt">reg&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">C_S_AXI_DATA_WIDTH&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mh">1&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="mh">0&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">slv_reg3&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kt">reg&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">C_S_AXI_DATA_WIDTH&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mh">1&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="mh">0&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">reg_data_out&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">...&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>作为从机，在写逻辑中，会根据地址将数据存入对应的&lt;code>slv_reg&lt;/code>寄存器，通过将switch case内&lt;code>slv_reg&lt;/code>改为其他寄存器，可以改变写入寄存器的位置，不过在模板中&lt;code>slv_reg&lt;/code>仅用于发送与接收，为避免错误，建议不要直接修改模板内容，而在其他时序逻辑中转存其值。另外注意这里的default语句理论上是不会运行的，因此更改此处的赋值左寄存器并不会将写入数据储存到新位置处。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-verilog" data-lang="verilog">&lt;span class="line">&lt;span class="cl"> &lt;span class="k">always&lt;/span> &lt;span class="p">@(&lt;/span> &lt;span class="k">posedge&lt;/span> &lt;span class="n">S_AXI_ACLK&lt;/span> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="n">S_AXI_ARESETN&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mh">1&lt;/span>&lt;span class="mb">&amp;#39;b0&lt;/span> &lt;span class="p">)...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">slv_reg_wren&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">case&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="n">axi_awaddr&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">ADDR_LSB&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nl">OPT_MEM_ADDR_BITS:&lt;/span>&lt;span class="n">ADDR_LSB&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mh">2&amp;#39;h0&lt;/span>&lt;span class="o">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="n">byte_index&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mh">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">byte_index&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">C_S_AXI_DATA_WIDTH&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mh">8&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mh">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">byte_index&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">byte_index&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mh">1&lt;/span> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="n">S_AXI_WSTRB&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">byte_index&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mh">1&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">slv_reg0&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">byte_index&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mh">8&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+:&lt;/span> &lt;span class="mh">8&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">S_AXI_WDATA&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">byte_index&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mh">8&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+:&lt;/span> &lt;span class="mh">8&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mh">2&amp;#39;h1&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="p">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mh">2&amp;#39;h2&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="p">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mh">2&amp;#39;h3&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="p">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">default&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">slv_reg0&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">slv_reg0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">slv_reg1&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">slv_reg1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">slv_reg2&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">slv_reg2&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">slv_reg3&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">slv_reg3&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">endcase&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>而在读逻辑中，首先当地址位变动时，会将指定寄存器数据读入&lt;code>reg_data_out&lt;/code>中，并在接下来的读时序中将&lt;code>reg_data_out&lt;/code>内数据送出。因此，可以修改switch case内赋值语句右值来将我们需要的寄存器数据通过指定地址读出。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-verilog" data-lang="verilog">&lt;span class="line">&lt;span class="cl"> &lt;span class="k">assign&lt;/span> &lt;span class="n">slv_reg_rden&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">axi_arready&lt;/span> &lt;span class="o">&amp;amp;&lt;/span> &lt;span class="n">S_AXI_ARVALID&lt;/span> &lt;span class="o">&amp;amp;&lt;/span> &lt;span class="o">~&lt;/span>&lt;span class="n">axi_rvalid&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">always&lt;/span> &lt;span class="p">@(&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">case&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="n">axi_araddr&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">ADDR_LSB&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nl">OPT_MEM_ADDR_BITS:&lt;/span>&lt;span class="n">ADDR_LSB&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mh">2&amp;#39;h0&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="n">reg_data_out&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">slv_reg0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mh">2&amp;#39;h1&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="n">reg_data_out&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">slv_reg1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mh">2&amp;#39;h2&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="n">reg_data_out&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">slv_reg2&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mh">2&amp;#39;h3&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="n">reg_data_out&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">slv_reg3&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">default&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="n">reg_data_out&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="mh">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">endcase&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">always&lt;/span> &lt;span class="p">@(&lt;/span> &lt;span class="k">posedge&lt;/span> &lt;span class="n">S_AXI_ACLK&lt;/span> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="n">S_AXI_ARESETN&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mh">1&lt;/span>&lt;span class="mb">&amp;#39;b0&lt;/span> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">axi_rdata&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="mh">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">slv_reg_rden&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">axi_rdata&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">reg_data_out&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="编写ip逻辑">编写IP逻辑&lt;/h2>
+&lt;p>这里我们简单实现一个计算两数平均值的模块，&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-verilog" data-lang="verilog">&lt;span class="line">&lt;span class="cl"> &lt;span class="kt">reg&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mh">31&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="mh">0&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">average_reg&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">always&lt;/span> &lt;span class="p">@(&lt;/span>&lt;span class="k">posedge&lt;/span> &lt;span class="n">S_AXI_ACLK&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">begin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">average_reg&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">slv_reg0&lt;/span> &lt;span class="o">&amp;gt;&amp;gt;&lt;/span> &lt;span class="mh">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">slv_reg1&lt;/span> &lt;span class="o">&amp;gt;&amp;gt;&lt;/span> &lt;span class="mh">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">slv_reg0&lt;/span> &lt;span class="o">&amp;amp;&lt;/span> &lt;span class="n">slv_reg1&lt;/span> &lt;span class="o">&amp;amp;&lt;/span> &lt;span class="mh">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>同时，将读逻辑中的&lt;code>2'h2 : reg_data_out &amp;lt;= slv_reg2;&lt;/code>修改为&lt;code>2'h2 : reg_data_out &amp;lt;= average_reg;&lt;/code>使计算结果可以通过访问&lt;code>0b1000&lt;/code>地址读出。&lt;/p>
+&lt;p>编写完成，依次运行Synthesis、Implement，验证无误后，可以在&lt;code>Package IP&lt;/code>页的&lt;code>Review and Package&lt;/code>中选择&lt;code>Re-Package IP&lt;/code>重新生成IP核。&lt;/p>
+&lt;p>&lt;img src="https://img.ioyoi.me/202303141228649.webp" alt="image-20230313201034505">&lt;/p>
+&lt;h2 id="调用ip核">调用IP核&lt;/h2>
+&lt;p>返回原工程，在Block Design中加入封装好的IP核和ZYNQ7 PS，自动连线，Vivado会帮我们添加时钟和AXI控制器。&lt;/p>
+&lt;p>&lt;img src="https://img.ioyoi.me/202303141228644.webp" alt="image-20230313202403918">&lt;/p>
+&lt;p>保存Design，在&lt;code>Sources&lt;/code>中右键选择&lt;code>Create HDL Wrapper&lt;/code>让Vivado自动生成一个含有设计例化的顶层文件，综合实现生成bit流。&lt;/p>
+&lt;p>&lt;img src="https://img.ioyoi.me/202303141228083.webp" alt="image-20230313202121696">&lt;/p>
+&lt;h2 id="上板验证">上板验证&lt;/h2>
+&lt;p>为在开发板上调用该IP核，需要使用Vivado生成三个文件：&lt;/p>
+&lt;ol>
+&lt;li>&lt;code>.bit&lt;/code>文件：该文件可视作可执行文件，在PYNQ板上通过&lt;code>Overlay&lt;/code>导入，生成在&lt;code>{Project Dir}\{Project}.runs\impl_1\{Top File}.bit&lt;/code>处；&lt;/li>
+&lt;li>&lt;code>.hwh&lt;/code>文件：硬件描述文件，包含有对PYNQ各模块的配置，默认生成在&lt;code>{Project Dir}\{Project}.gen/sources_1/bd/{Block Design}/hw_handoff/{Block Design}.hwh&lt;/code>处；&lt;/li>
+&lt;li>&lt;code>.tcl&lt;/code>文件（可选）：早期版本的硬件描述文件，可读性较&lt;code>.hwh&lt;/code>文件可读性更高，需要在工具栏&lt;code>File-&amp;gt;Export-&amp;gt;Export Block Design&lt;/code>生成。&lt;/li>
+&lt;/ol>
+&lt;p>随后将&lt;code>.bit&lt;/code>文件与&lt;code>.hwh&lt;/code>文件改为同一名称，移动到PYNQ板内同一目录下，PYNQ默认将Overlay保存在&lt;code>/home/xilinx/pynq/overlays&lt;/code>目录下。&lt;/p>
+&lt;div class="note info">&lt;p>在早期版本中，需要将&lt;code>.bit&lt;/code>文件与同名&lt;code>.tcl&lt;/code>上传至PYNQ板，不需要&lt;code>.hwh&lt;/code>文件。&lt;/p>&lt;/div>
+&lt;p>PYNQ板中，PS层与PL层的交互通过内存映射实现，因此我们需要知到挂载IP核对应的内存基址，在&lt;code>.tcl&lt;/code>文件中，找到内存映射部分，可以看到&lt;code>average_0/S00_AXI&lt;/code>对应的基址为&lt;code>0x43C00000&lt;/code>，掩码为&lt;code>0x0000FFFF&lt;/code>。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-tcl" data-lang="tcl">&lt;span class="line">&lt;span class="cl"> &lt;span class="c"># Create address segments
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span> &lt;span class="nv">assign_bd_address&lt;/span> &lt;span class="o">-&lt;/span>offset &lt;span class="mh">0x43C00000&lt;/span> &lt;span class="o">-&lt;/span>range &lt;span class="mh">0x00010000&lt;/span> &lt;span class="o">-&lt;/span>target_address_space &lt;span class="k">[&lt;/span>&lt;span class="nv">get_bd_addr_spaces&lt;/span> processing_system7_0&lt;span class="o">/&lt;/span>Data&lt;span class="k">]&lt;/span> &lt;span class="k">[&lt;/span>&lt;span class="nv">get_bd_addr_segs&lt;/span> average_0&lt;span class="o">/&lt;/span>S00_AXI&lt;span class="o">/&lt;/span>S00_AXI_reg&lt;span class="k">]&lt;/span> &lt;span class="o">-&lt;/span>force
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>而在&lt;code>.hwh&lt;/code>文件中，可以找到对应模块配置内的&lt;code>PARAMATERS&lt;/code>部分，同样可以读出基址和地址范围：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-xml" data-lang="xml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">&amp;lt;PARAMETERS&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;lt;PARAMETER&lt;/span> &lt;span class="na">NAME=&lt;/span>&lt;span class="s">&amp;#34;C_S00_AXI_DATA_WIDTH&amp;#34;&lt;/span> &lt;span class="na">VALUE=&lt;/span>&lt;span class="s">&amp;#34;32&amp;#34;&lt;/span>&lt;span class="nt">/&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;lt;PARAMETER&lt;/span> &lt;span class="na">NAME=&lt;/span>&lt;span class="s">&amp;#34;C_S00_AXI_ADDR_WIDTH&amp;#34;&lt;/span> &lt;span class="na">VALUE=&lt;/span>&lt;span class="s">&amp;#34;4&amp;#34;&lt;/span>&lt;span class="nt">/&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;lt;PARAMETER&lt;/span> &lt;span class="na">NAME=&lt;/span>&lt;span class="s">&amp;#34;Component_Name&amp;#34;&lt;/span> &lt;span class="na">VALUE=&lt;/span>&lt;span class="s">&amp;#34;design_1_average_0_11&amp;#34;&lt;/span>&lt;span class="nt">/&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;lt;PARAMETER&lt;/span> &lt;span class="na">NAME=&lt;/span>&lt;span class="s">&amp;#34;EDK_IPTYPE&amp;#34;&lt;/span> &lt;span class="na">VALUE=&lt;/span>&lt;span class="s">&amp;#34;PERIPHERAL&amp;#34;&lt;/span>&lt;span class="nt">/&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;lt;PARAMETER&lt;/span> &lt;span class="na">NAME=&lt;/span>&lt;span class="s">&amp;#34;C_S00_AXI_BASEADDR&amp;#34;&lt;/span> &lt;span class="na">VALUE=&lt;/span>&lt;span class="s">&amp;#34;0x43C00000&amp;#34;&lt;/span>&lt;span class="nt">/&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;lt;PARAMETER&lt;/span> &lt;span class="na">NAME=&lt;/span>&lt;span class="s">&amp;#34;C_S00_AXI_HIGHADDR&amp;#34;&lt;/span> &lt;span class="na">VALUE=&lt;/span>&lt;span class="s">&amp;#34;0x43C0FFFF&amp;#34;&lt;/span>&lt;span class="nt">/&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nt">&amp;lt;/PARAMETERS&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>最后，在&lt;code>jupyter notebook&lt;/code>中，通过&lt;code>Overlay&lt;/code>加载&lt;code>.bit&lt;/code>文件，通过&lt;code>MMIO&lt;/code>读写调用我们的IP功能，演示效果如下：&lt;/p>
+&lt;p>&lt;img src="https://img.ioyoi.me/202303141250845.webp" alt="">&lt;/p>
+&lt;p>为方便调用，我们可以为其封装一个接口，如：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">avg&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">a&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">b&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">mmio&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">MMIO&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mh">0x43c00000&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mh">0x10000&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">mmio&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">write&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mh">0x0&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">a&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">mmio&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">write&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mh">0x4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">b&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">mmio&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">read&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mh">0x8&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;img src="https://img.ioyoi.me/202303141249482.webp" alt="image-20230314124949099">&lt;/p></description><category domain="https://ioyoi.me/tech/">tech</category><category domain="https://ioyoi.me/tags/pynq/">pynq</category><category domain="https://ioyoi.me/tags/fpga/">fpga</category><category domain="https://ioyoi.me/tags/vivado/">vivado</category><category domain="https://ioyoi.me/tags/tutorial/">tutorial</category></item><item><title>一劳永逸解决端口封禁问题</title><link>https://ioyoi.me/tech/port-blocking/</link><guid isPermaLink="true">https://ioyoi.me/tech/port-blocking/</guid><pubDate>Mon, 27 Feb 2023 10:52:10 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="引子">引子&lt;/h2>
 &lt;p>过往四五年，图个安全，一直供着VPS自建科学上网，使用Nginx做前端、博客伪装的Vmess协议，很长时间都没有遇到被墙的问题。直到去年夏天，换用了晚高峰够用且便宜许多的白丝云，把协议换成了更轻量的Vless，短短半年时间内遇到了两次&lt;strong>443端口封禁&lt;/strong>，是线路问题还是协议问题网上众说纷纭，遇上了只能手动换端口解决，虽然操作并不复杂，但多少有些闹心。&lt;/p>
 &lt;p>最近折腾软路由时，读到一篇&lt;a href="https://blog.jmal.top/s/iptables-nat-port-forwarding-route-gateway">NAT转发的文章&lt;/a>，延伸出了一个通过将大量端口转发至服务端口规避443被封禁手动更改的方法，配合订阅自动更新，遭遇端口封禁时，只需要在客户端点一下更新订阅就可以了。&lt;/p>
 &lt;div class="note info">&lt;p>后面朋友提醒，V2ray自带的&lt;a href="https://www.v2fly.org/v5/config/proxy/dokodemo.html">任意门（Dokodemo-door）&lt;/a>也可以实现类似功能，不过我使用的v2fly版本似乎只能指定单端口的转发。&lt;/p>&lt;/div>
