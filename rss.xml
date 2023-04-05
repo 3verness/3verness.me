@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.111.3 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Wed, 05 Apr 2023 16:52:43 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>永磁同步电机的闭环控制·PMSM电机与坐标变换</title><link>https://ioyoi.me/tech/pmsm-1/</link><guid isPermaLink="true">https://ioyoi.me/tech/pmsm-1/</guid><pubDate>Wed, 05 Apr 2023 22:45:14 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="永磁同步电机原理">永磁同步电机原理&lt;/h2>
+<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.111.3 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Wed, 05 Apr 2023 17:02:41 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>永磁同步电机的闭环控制·PMSM电机与坐标变换</title><link>https://ioyoi.me/tech/pmsm-1/</link><guid isPermaLink="true">https://ioyoi.me/tech/pmsm-1/</guid><pubDate>Wed, 05 Apr 2023 22:45:14 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="永磁同步电机原理">永磁同步电机原理&lt;/h2>
 &lt;p>永磁同步电机（&lt;strong>P&lt;/strong>ermanent &lt;strong>M&lt;/strong>agnet &lt;strong>S&lt;/strong>ynchronous &lt;strong>M&lt;/strong>otor）是工业应用中一种常见的电机，其结构由永磁体转子与线圈定子组成，线圈通入交变电流时产生交变磁场，永磁体转子产生定向磁场，两磁场相互作用，引导永磁体转子指向旋转磁场方向，实现转子转动。&lt;/p>
 &lt;p>永磁同步电机的运行依赖磁场的同步，稳定运行时，转子与定子磁场同步转动，如果定子速度慢于磁场旋转速度，磁场力引导转子加速，反之则引导转子减速，并最终实现速度的同步。&lt;/p>
 &lt;h2 id="永磁同步电机中的坐标系">永磁同步电机中的坐标系&lt;/h2>
@@ -7,9 +7,9 @@
 &lt;ul>
 &lt;li>ABC坐标系由三项定子线圈产生的磁场方向确定，坐标轴两两相隔120°，为固定坐标系；&lt;/li>
 &lt;li>αβ坐标系是ABC坐标系对应的直角坐标系，无实际物理意义，其α轴与A轴重合，β轴超前α轴90°，同样为固定坐标系；&lt;/li>
-&lt;li>dq坐标系由永磁体转子磁场方向确定，d轴平行于永磁体磁场而q轴垂直于永磁体磁场，该坐标系随转子旋转而转动，其中d轴与α轴的夹角即为电机的转动角。&lt;/li>
+&lt;li>dq坐标系由永磁体转子磁场方向确定，d轴平行于永磁体磁场而q轴垂直于永磁体磁场，该坐标系随转子旋转而转动，其中d轴与α轴的夹角即为电机的电气角。&lt;/li>
 &lt;/ul>
-&lt;p>三种坐标系通过依照平行四边形法则的向量合成与分解实现两两转换，其转换关系如下图所示：&lt;/p>
+&lt;p>三种坐标系依照平行四边形法则进行向量合成与分解，实现两两转换，其转换关系如下图所示：&lt;/p>
 &lt;div class="mermaid" align="center">
 graph LR;
 A[ABC]--Clark-->B[αβ]
@@ -42,7 +42,7 @@ $$
 $$
 \left[\begin{array}{c}f_A\\f_B\\f_C\end{array}\right]=\left[\begin{array}{cc}1&amp;amp;0\\-\frac{1}{2}&amp;amp;\frac{\sqrt3}{2}\\-\frac{1}{2}&amp;amp;\frac{\sqrt3}{2}\end{array}\right]\left[\begin{array}{c}f_\alpha\\f_\beta\end{array}\right]
 $$
-与Clark变换相同，这里给出的时等幅值变换的公式，若进行等功率变换，需乘系数$\sqrt6/3$。&lt;/p>
+与Clark变换相同，这里给出的是等幅值变换的公式，若进行等功率变换，需乘系数$\sqrt6/3$。&lt;/p>
 &lt;/li>
 &lt;li>
 &lt;p>Park变换&lt;/p>
@@ -66,7 +66,7 @@ $$&lt;/p>
 &lt;/li>
 &lt;/ul>
 &lt;h2 id="永磁同步电机的数学模型">永磁同步电机的数学模型&lt;/h2>
-&lt;p>依照永磁同步电机的原理，可以将PMSM电机的运行过程分解为以下三个模型：电器模型、磁链模型和机械模型。&lt;/p>
+&lt;p>依照永磁同步电机的原理，可以将PMSM电机的运行过程分解为以下三个模型：电气模型、磁链模型和机械模型。&lt;/p>
 &lt;p>其中$u_d,u_q$为dq轴上定子电压分量，$i_d,i_q$为电流分量，$R$为定子电阻，$\psi_d,\psi_q$为定子磁链的分量，$\omega_e$为电气角速度，$L_d,L_q$为轴上电感分量，$\psi_f$为永磁体磁链，$\omega_m$为机械角速度，$J$为转动惯量，$T_m$为负载力矩，$b_m$为摩擦系数。&lt;/p>
 &lt;ul>
 &lt;li>
@@ -79,7 +79,7 @@ u_q&amp;amp;=Ri_q+\frac{d}{dt}\psi_q+\omega_e\psi_d
 $$&lt;/p>
 &lt;/li>
 &lt;li>
-&lt;p>磁链模型：如原理部分所示，磁场包括永磁体磁场和线圈感生磁场，其中永磁体磁场仅加载在平行于永磁体的d轴：
+&lt;p>磁链模型：如原理部分所述，磁场包括永磁体磁场和线圈感生磁场，其中永磁体磁场仅加载在平行于永磁体的d轴：
 $$
 \begin{aligned}
 \psi_d&amp;amp;=L_di_d+\psi_f\\
