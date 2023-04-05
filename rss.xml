@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.111.3 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Wed, 05 Apr 2023 16:48:50 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>永磁同步电机的闭环控制·PMSM电机与坐标变换</title><link>https://ioyoi.me/tech/pmsm-1/</link><guid isPermaLink="true">https://ioyoi.me/tech/pmsm-1/</guid><pubDate>Wed, 05 Apr 2023 22:45:14 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="永磁同步电机原理">永磁同步电机原理&lt;/h2>
+<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.111.3 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Wed, 05 Apr 2023 16:52:43 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>永磁同步电机的闭环控制·PMSM电机与坐标变换</title><link>https://ioyoi.me/tech/pmsm-1/</link><guid isPermaLink="true">https://ioyoi.me/tech/pmsm-1/</guid><pubDate>Wed, 05 Apr 2023 22:45:14 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="永磁同步电机原理">永磁同步电机原理&lt;/h2>
 &lt;p>永磁同步电机（&lt;strong>P&lt;/strong>ermanent &lt;strong>M&lt;/strong>agnet &lt;strong>S&lt;/strong>ynchronous &lt;strong>M&lt;/strong>otor）是工业应用中一种常见的电机，其结构由永磁体转子与线圈定子组成，线圈通入交变电流时产生交变磁场，永磁体转子产生定向磁场，两磁场相互作用，引导永磁体转子指向旋转磁场方向，实现转子转动。&lt;/p>
 &lt;p>永磁同步电机的运行依赖磁场的同步，稳定运行时，转子与定子磁场同步转动，如果定子速度慢于磁场旋转速度，磁场力引导转子加速，反之则引导转子减速，并最终实现速度的同步。&lt;/p>
 &lt;h2 id="永磁同步电机中的坐标系">永磁同步电机中的坐标系&lt;/h2>
@@ -72,8 +72,10 @@ $$&lt;/p>
 &lt;li>
 &lt;p>电气模型：同步电机两轴电压由电阻压降与反电动势组成，而反电动势依照来源可划分为轴上磁通变化感生电动势和磁场夹角变化感生电动势，具体可写作：
 $$
-u_d=Ri_d+\frac{d}{dt}\psi_d-\omega_e\psi_q\\
-u_q=Ri_q+\frac{d}{dt}\psi_q+\omega_e\psi_d
+\begin{aligned}
+u_d&amp;amp;=Ri_d+\frac{d}{dt}\psi_d-\omega_e\psi_q\\
+u_q&amp;amp;=Ri_q+\frac{d}{dt}\psi_q+\omega_e\psi_d
+\end{aligned}
 $$&lt;/p>
 &lt;/li>
 &lt;li>
