@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.111.3 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Wed, 05 Apr 2023 17:02:41 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>永磁同步电机的闭环控制·PMSM电机与坐标变换</title><link>https://ioyoi.me/tech/pmsm-1/</link><guid isPermaLink="true">https://ioyoi.me/tech/pmsm-1/</guid><pubDate>Wed, 05 Apr 2023 22:45:14 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="永磁同步电机原理">永磁同步电机原理&lt;/h2>
+<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.111.3 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Thu, 06 Apr 2023 16:58:05 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>永磁同步电机的闭环控制·PMSM电机与坐标变换</title><link>https://ioyoi.me/tech/pmsm-1/</link><guid isPermaLink="true">https://ioyoi.me/tech/pmsm-1/</guid><pubDate>Wed, 05 Apr 2023 22:45:14 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="永磁同步电机原理">永磁同步电机原理&lt;/h2>
 &lt;p>永磁同步电机（&lt;strong>P&lt;/strong>ermanent &lt;strong>M&lt;/strong>agnet &lt;strong>S&lt;/strong>ynchronous &lt;strong>M&lt;/strong>otor）是工业应用中一种常见的电机，其结构由永磁体转子与线圈定子组成，线圈通入交变电流时产生交变磁场，永磁体转子产生定向磁场，两磁场相互作用，引导永磁体转子指向旋转磁场方向，实现转子转动。&lt;/p>
 &lt;p>永磁同步电机的运行依赖磁场的同步，稳定运行时，转子与定子磁场同步转动，如果定子速度慢于磁场旋转速度，磁场力引导转子加速，反之则引导转子减速，并最终实现速度的同步。&lt;/p>
 &lt;h2 id="永磁同步电机中的坐标系">永磁同步电机中的坐标系&lt;/h2>
-&lt;p>永磁同步电机控制中通常会使用三种坐标系，分别为ABC坐标系、αβ坐标系和dq坐标系。&lt;sup id="fnref:1">&lt;a href="https://ioyoi.me/tech/pmsm-1/#fn:1" class="footnote-ref" role="doc-noteref">1&lt;/a>&lt;/sup>&lt;/p>
+&lt;p>永磁同步电机控制中通常会使用三种坐标系，分别为ABC坐标系、αβ坐标系和dq坐标系。
+&lt;sup id="fnref:1">&lt;a href="https://ioyoi.me/tech/pmsm-1/#fn:1" class="footnote-ref" role="doc-noteref">[1]&lt;/a>&lt;/sup>&lt;/p>
 &lt;p>&lt;img src="https://img.ioyoi.me/20230405230357.webp" alt="Illustration-of-the-salient-pole-permanent-magnet-synchronous-motor-PMSM-model" title="PMSM电机中的三个坐标系">&lt;/p>
 &lt;ul>
 &lt;li>ABC坐标系由三项定子线圈产生的磁场方向确定，坐标轴两两相隔120°，为固定坐标系；&lt;/li>
@@ -52,6 +53,7 @@ $$
 $$
 &lt;div class="note primary">&lt;p>&lt;strong>电气角与机械角&lt;/strong>&lt;/p>
 &lt;p>注意这里的电气角$\theta_e$与机械角$\theta_m$不同，其之间的转换关系与电机级对数$p$有关：
+&lt;sup id="fnref:2">&lt;a href="https://ioyoi.me/tech/pmsm-1/#fn:2" class="footnote-ref" role="doc-noteref">[2]&lt;/a>&lt;/sup>
 $$
 \theta_e=p\theta_m
 $$
@@ -115,16 +117,10 @@ $$
 T_e-b_m\omega_m-T_m=J\frac{d\omega_m}{dt}
 $$&lt;/p>
 &lt;/li>
+&lt;li>&lt;/li>
 &lt;/ul>
 &lt;p>结合以上三个模型，即可完整描述出永磁同步电机的工作原理。&lt;/p>
-&lt;div class="footnotes" role="doc-endnotes">
-&lt;hr>
-&lt;ol>
-&lt;li id="fn:1">
-&lt;p>&lt;a href="https://www.researchgate.net/publication/327634712_Full-Speed_Range_Encoderless_Control_for_Salient-Pole_PMSM_with_a_Novel_Full-Order_SMO">https://www.researchgate.net/publication/327634712_Full-Speed_Range_Encoderless_Control_for_Salient-Pole_PMSM_with_a_Novel_Full-Order_SMO&lt;/a>&amp;#160;&lt;a href="https://ioyoi.me/tech/pmsm-1/#fnref:1" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
-&lt;/li>
-&lt;/ol>
-&lt;/div></description><category domain="https://ioyoi.me/tech/">tech</category><category domain="https://ioyoi.me/tags/motor/">motor</category></item><item><title>PYNQ学习·第一个IP核</title><link>https://ioyoi.me/tech/pynq-1-verilog-ip/</link><guid isPermaLink="true">https://ioyoi.me/tech/pynq-1-verilog-ip/</guid><pubDate>Tue, 14 Mar 2023 12:21:12 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;p>最近我开始学习PYNQ板和Vivado开发流程，与之前接触的Quartus开发流程不同，Vivado开发主要集中在IP核的设计和集成上，通过IP核的调用连接实现目标功能。在查阅资料的过程中，我发现大部分PYNQ的入门教程都使用HLS高级语言综合作为起步项目，而基于Verilog等RTL原语开发的教程较少。此外，一些教程已经过时，不再适用于当前的软件版本。因此，我写下这篇文章，记录我作为新手小白的学习经验。&lt;/p>
+&lt;div class="footnotes" role="doc-endnotes">&lt;hr>&lt;ol>&lt;li id="fn:1">&lt;p>&lt;a href="https://www.researchgate.net/publication/327634712_Full-Speed_Range_Encoderless_Control_for_Salient-Pole_PMSM_with_a_Novel_Full-Order_SMO">https://www.researchgate.net/publication/327634712_Full-Speed_Range_Encoderless_Control_for_Salient-Pole_PMSM_with_a_Novel_Full-Order_SMO&lt;/a>&lt;a href="https://ioyoi.me/tech/pmsm-1/#fnref:1" class="footnote-backref" role="doc-backlink">&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="icon footnote-icon">&lt;path d="M177 159.7l136 136c9.4 9.4 9.4 24.6 0 33.9l-22.6 22.6c-9.4 9.4-24.6 9.4-33.9 0L160 255.9l-96.4 96.4c-9.4 9.4-24.6 9.4-33.9 0L7 329.7c-9.4-9.4-9.4-24.6 0-33.9l136-136c9.4-9.5 24.6-9.5 34-.1z">&lt;/path>&lt;/svg>&lt;/a>&lt;/p>&lt;/li>&lt;li id="fn:2">&lt;p>&lt;a href="https://www.sciencedirect.com/topics/engineering/magnetomotive-force">https://www.sciencedirect.com/topics/engineering/magnetomotive-force&lt;/a>&lt;a href="https://ioyoi.me/tech/pmsm-1/#fnref:2" class="footnote-backref" role="doc-backlink">&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="icon footnote-icon">&lt;path d="M177 159.7l136 136c9.4 9.4 9.4 24.6 0 33.9l-22.6 22.6c-9.4 9.4-24.6 9.4-33.9 0L160 255.9l-96.4 96.4c-9.4 9.4-24.6 9.4-33.9 0L7 329.7c-9.4-9.4-9.4-24.6 0-33.9l136-136c9.4-9.5 24.6-9.5 34-.1z">&lt;/path>&lt;/svg>&lt;/a>&lt;/p>&lt;/li>&lt;/ol>&lt;/div></description><category domain="https://ioyoi.me/tech/">tech</category><category domain="https://ioyoi.me/tags/motor/">motor</category></item><item><title>PYNQ学习·第一个IP核</title><link>https://ioyoi.me/tech/pynq-1-verilog-ip/</link><guid isPermaLink="true">https://ioyoi.me/tech/pynq-1-verilog-ip/</guid><pubDate>Tue, 14 Mar 2023 12:21:12 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;p>最近我开始学习PYNQ板和Vivado开发流程，与之前接触的Quartus开发流程不同，Vivado开发主要集中在IP核的设计和集成上，通过IP核的调用连接实现目标功能。在查阅资料的过程中，我发现大部分PYNQ的入门教程都使用HLS高级语言综合作为起步项目，而基于Verilog等RTL原语开发的教程较少。此外，一些教程已经过时，不再适用于当前的软件版本。因此，我写下这篇文章，记录我作为新手小白的学习经验。&lt;/p>
 &lt;div class="note success">&lt;p>本文教程适用于Vivado 2022.1，并在搭载v3.0.1镜像的PYNQ-Z1板上验证可用。&lt;/p>&lt;/div>
 &lt;h2 id="前期准备">前期准备&lt;/h2>
 &lt;p>关于PYNQ板的连接和启动，官网已有&lt;a href="https://pynq.readthedocs.io/en/latest/getting_started/pynq_z1_setup.html">详细说明&lt;/a>，这里不再赘述。&lt;/p>
