@@ -1,0 +1,514 @@
+<!doctype html><html lang=zh-CN><head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#"><meta charset=utf-8><meta name=generator content="Hugo 0.114.1"><meta name=theme-color content="#fcfaf2"><meta name=color-scheme content="light dark"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=format-detection content="telephone=no, date=no, address=no, email=no"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><title>Verilator仿真器入门 | Evergarden</title><link rel=stylesheet href=/css/meme.min.9b1ce87cac811c12d18a780818d1c550d08ba4bfa33d4e81698646882ba25ab6.css><script src=/js/meme.min.f8950bd7ff7f94df838144d3d717223c2b5d2c98f19f0b6656cac5b87a2a8c97.js></script>
+<link rel=preconnect href=https://fonts.gstatic.com crossorigin><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Merriweather%7cAllura%7cCinzel+Decorative%7cEB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,700%7cFira+Code:ital,wght@0,400;0,700;1,400;1,700%7cNoto+Serif+SC:wght@400;500;700&amp;display=swap&amp;subset=chinese-simplified" media=print onload='this.media="all"'><noscript><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Merriweather%7cAllura%7cCinzel+Decorative%7cEB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,700%7cFira+Code:ital,wght@0,400;0,700;1,400;1,700%7cNoto+Serif+SC:wght@400;500;700&amp;display=swap&amp;subset=chinese-simplified"></noscript><meta name=author content="EvernessW"><meta name=description content="Why Verilator? 唯一支持SystemVerilog 2017标准的开源Verilog Simulat……"><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><link rel=mask-icon href=/icons/safari-pinned-tab.svg color=#9cf><link rel=apple-touch-icon sizes=180x180 href=/icons/apple-touch-icon.png><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-title content="Evergarden"><meta name=apple-mobile-web-app-status-bar-style content="black"><meta name=mobile-web-app-capable content="yes"><meta name=application-name content="Evergarden"><meta name=msapplication-starturl content="../../"><meta name=msapplication-TileColor content="#fcfaf2"><meta name=msapplication-TileImage content="../../icons/mstile-150x150.png"><link rel=manifest href=/manifest.json><link rel=canonical href=https://ioyoi.me/tech/verilator-tutorial/><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","datePublished":"2023-06-27T20:58:24+08:00","dateModified":"2023-06-27T13:15:39+00:00","url":"https://ioyoi.me/tech/verilator-tutorial/","headline":"Verilator仿真器入门","description":"Why Verilator? 唯一支持SystemVerilog 2017标准的开源Verilog Simulat……","inLanguage":"zh-CN","articleSection":"tech","wordCount":2462,"image":["https://img.ioyoi.me/20230627204823.webp"],"author":{"@type":"Person","description":"To discover. To change.","email":"3verness@gmail.com","image":"https://ioyoi.me/icons/apple-touch-icon.png","url":"https://ioyoi.me/","name":"EvernessW"},"license":"[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)","publisher":{"@type":"Organization","name":"Evergarden","logo":{"@type":"ImageObject","url":"https://ioyoi.me/icons/apple-touch-icon.png"},"url":"https://ioyoi.me/"},"mainEntityOfPage":{"@type":"WebSite","@id":"https://ioyoi.me/"}}</script><meta name=twitter:card content="summary_large_image"><meta name=twitter:site content="@ShaohangWang"><meta name=twitter:creator content="@ShaohangWang"><meta property="og:title" content="Verilator仿真器入门"><meta property="og:description" content="Why Verilator? 唯一支持SystemVerilog 2017标准的开源Verilog Simulat……"><meta property="og:url" content="https://ioyoi.me/tech/verilator-tutorial/"><meta property="og:site_name" content="Evergarden"><meta property="og:locale" content="zh"><meta property="og:image" content="https://img.ioyoi.me/20230627204823.webp"><meta property="og:type" content="article"><meta property="article:published_time" content="2023-06-27T20:58:24+08:00"><meta property="article:modified_time" content="2023-06-27T13:15:39+00:00"><meta property="article:section" content="tech"><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css></head><body><div class=container><header class=header><div class=header-wrapper><div class="header-inner single"><div class=site-brand><a href=/ class=brand>Evergarden</a></div><nav class=nav><ul class=menu id=menu><li class=menu-item><a href=/life/><span class=menu-item-name>life</span></a></li><li class=menu-item><a href=/tech/><span class=menu-item-name>tech</span></a></li><li class=menu-item><a href=/dream/><span class=menu-item-name>dream</span></a></li><li class=menu-item><a href=/me/><span class=menu-item-name>me</span></a></li><li class=menu-item><a id=theme-switcher href=#><svg t="1589722483728" class="icon theme-icon-light" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="658" width="200" height="200"><path d="M320 85.333333C243.626667 134.4 192 221.013333 192 320s51.626667 185.6 129.28 234.666667c-130.986667.0-235.946667-104.96-235.946667-234.666667A234.666667 234.666667.0 01320 85.333333m493.653333 64 61.013334 61.013334-664.32 664.32-61.013334-61.013334 664.32-664.32m-263.68 103.68L486.826667 213.333333 425.386667 256l17.92-72.533333L384 138.24l74.666667-5.12 24.746666-70.4L512 132.266667l73.813333 1.28-57.6 48.213333 21.76 71.253333m-140.8 154.026667L359.68 375.893333l-47.786667 33.28 14.506667-56.32L279.893333 317.44 337.92 313.6l19.2-55.04 21.76 54.186667 58.026667 1.28-44.8 37.12L409.173333 407.04M810.666667 576A234.666667 234.666667.0 01576 810.666667c-52.053333.0-100.266667-17.066667-139.093333-45.653334l328.106666-328.106666C793.6 475.733334 810.666666 523.946667 810.666667 576M622.933333 856.746667 741.12 807.68l-10.24 142.933333-107.946667-93.866666m184.746667-115.2L856.746667 623.36l93.866666 108.373333L807.68 741.546667M856.746667 529.92l-48.64-118.613333 142.506666 10.24L856.746667 529.92M410.88 807.68l118.186667 49.066667-107.946667 93.44L410.88 807.68z" fill p-id="659"/></svg><svg t="1589722483728" class="icon theme-icon-dark" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="658" width="200" height="200"><path d="M320 85.333333C243.626667 134.4 192 221.013333 192 320s51.626667 185.6 129.28 234.666667c-130.986667.0-235.946667-104.96-235.946667-234.666667A234.666667 234.666667.0 01320 85.333333m493.653333 64 61.013334 61.013334-664.32 664.32-61.013334-61.013334 664.32-664.32m-263.68 103.68L486.826667 213.333333 425.386667 256l17.92-72.533333L384 138.24l74.666667-5.12 24.746666-70.4L512 132.266667l73.813333 1.28-57.6 48.213333 21.76 71.253333m-140.8 154.026667L359.68 375.893333l-47.786667 33.28 14.506667-56.32L279.893333 317.44 337.92 313.6l19.2-55.04 21.76 54.186667 58.026667 1.28-44.8 37.12L409.173333 407.04M810.666667 576A234.666667 234.666667.0 01576 810.666667c-52.053333.0-100.266667-17.066667-139.093333-45.653334l328.106666-328.106666C793.6 475.733334 810.666666 523.946667 810.666667 576M622.933333 856.746667 741.12 807.68l-10.24 142.933333-107.946667-93.866666m184.746667-115.2L856.746667 623.36l93.866666 108.373333L807.68 741.546667M856.746667 529.92l-48.64-118.613333 142.506666 10.24L856.746667 529.92M410.88 807.68l118.186667 49.066667-107.946667 93.44L410.88 807.68z" fill p-id="659"/></svg></a></li></ul></nav></div></div><input type=checkbox id=nav-toggle aria-hidden=true>
+<label for=nav-toggle class=nav-toggle></label>
+<label for=nav-toggle class=nav-curtain></label></header><main class="main single" id=main><div class=main-inner><article class="content post h-entry" data-align=justify data-type=tech data-toc-num=true><h1 class="post-title p-name">Verilator仿真器入门</h1><div class=post-meta><time datetime=2023-06-27T20:58:24+08:00 class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6.0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6.0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6.0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6.0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6.0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6.0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6.0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6.0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6.0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6.0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6.0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6.0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5.0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6.0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6.0 12 5.4 12 12v52h48c26.5.0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3.0 6-2.7 6-6z"/></svg>&nbsp;2023.6.27</time>
+<time datetime=2023-06-27T13:15:39+00:00 class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M4e2 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627.0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627.0-12 5.373-12 12v52H48C21.49 64 0 85.49.0 112v352c0 26.51 21.49 48 48 48h352c26.51.0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 4e2H54a6 6 0 01-6-6V160h352v298a6 6 0 01-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2023.6.27</time>
+<span class="post-meta-item category"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M464 128H272l-54.63-54.63c-6-6-14.14-9.37-22.63-9.37H48C21.49 64 0 85.49.0 112v288c0 26.51 21.49 48 48 48h416c26.51.0 48-21.49 48-48V176c0-26.51-21.49-48-48-48zm0 272H48V112h140.12l54.63 54.63c6 6 14.14 9.37 22.63 9.37H464v224z"/></svg>&nbsp;<a href=/tech/ class="category-link p-category">Tech</a></span>
+<span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3.0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9.0l60.1 60.1c18.8 18.7 18.8 49.1.0 67.9zM284.2 99.8 21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3.0-17l-111-111c-4.8-4.7-12.4-4.7-17.1.0zM124.1 339.9c-5.5-5.5-5.5-14.3.0-19.8l154-154c5.5-5.5 14.3-5.5 19.8.0s5.5 14.3.0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8.0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;2462</span>
+<span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5.0-2e2-89.5-2e2-2e2S145.5 56 256 56s2e2 89.5 2e2 2e2-89.5 2e2-2e2 2e2zm61.8-104.4-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6.0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;5&nbsp;min</span></div><div class="post-body e-content"><h2 id=why-verilator><a href=#why-verilator class=anchor-link><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96.0-59.27-59.26-59.27-155.7.0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757.0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037.0 01-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482.0 0120.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96.0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454.0 0020.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037.0 00-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639.0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>Why Verilator?</h2><ul><li>唯一支持SystemVerilog 2017标准的开源Verilog Simulator；</li><li>将Verilog编译为C++或SystemC类，更为方便的进行性能测试和仿真；</li><li>拥有严格的代码规范，仅支持<code>display()</code>, <code>$finish()</code>, <code>$fatal()</code>等少量不可综合的代码，在综合前排查错误；</li><li>快，非常快；</li></ul><p>速度伴随着一定的代价，Verilator的仿真具有一定局限性，包括但不限于：</p><ul><li>基于周期仿真，无时序信息，信号转变在瞬间完成，两时钟沿内的所有信号变化都会被忽略；</li><li>相比于实际电路中的“01xz”，Verilator中信号只有“01”两个值，且所有信号初值均为0，可能无法观察到电路初始化。</li></ul><h2 id=how><a href=#how class=anchor-link><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96.0-59.27-59.26-59.27-155.7.0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757.0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037.0 01-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482.0 0120.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96.0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454.0 0020.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037.0 00-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639.0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>How?</h2><p>Verilator的仿真分为如下几步：</p><ul><li>编写电路功能代码(Verilog/SystemVerilog)；</li><li>编写测试代码(C++/SystemC)；</li><li>由Verilog生成C++/SystemC工程；</li><li>编译可执行文件；</li><li>运行仿真。</li></ul><p>具体命令如下：</p><ul><li><p>转换代码，生成工程</p><div class=highlight><div class=chroma><div class=table-container><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>verilator -Wall --trace --cc alu.sv --exe tb_alu.cpp
+</span></span></code></pre></td></tr></table></div></div></div><ul><li><code>--cc</code>：转换为C++工程，若使用SystemC应使用<code>--sc</code>；</li><li><code>--trace</code>：进行波形记录，仅当需要查看波形时使用；</li><li><code>--exe</code>：工程<code>Makefile</code>生成可执行文件，如不使用会生成<code>.a</code>的静态链接库；</li><li><code>-Wall</code>：显示所有格式警告。</li></ul><p>其他常用参数：</p><ul><li><code>--Mdir</code>：指定生成目录；</li><li><code>--top-module</code>：指定top；</li><li><code>-x-assign</code>：设定X对应值，可选<code>0</code>，<code>1</code>，<code>fast</code>（性能最优，默认），<code>unique</code>（随机值）；</li><li><code>-x-initial</code>：设定初值，可选<code>0</code>，<code>unique</code>（随机值，默认，用于检查reset功能），<code>fast</code>（性能最优）。</li></ul><div class="note info"><p>如果需要使用<code>unique</code>随机值，需要在运行可执行文件时传入runtime参数<code>+verilator+rand+reset+2</code>，其中可选<code>0</code>（全0），<code>1</code>（全1），<code>2</code>（随机），具体实现为：</p><ul><li><p>测试样例中，在初始化模块前向仿真器传入参数，如：</p><div class=highlight><div class=chroma><div class=table-container><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-c++ data-lang=c++><span class=line><span class=cl><span class=kt>int</span> <span class=nf>main</span><span class=p>(</span><span class=kt>int</span> <span class=n>argc</span><span class=p>,</span> <span class=kt>char</span><span class=o>**</span> <span class=n>argv</span><span class=p>,</span> <span class=kt>char</span><span class=o>**</span> <span class=n>env</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=n>Verilated</span><span class=o>::</span><span class=n>commandArgs</span><span class=p>(</span><span class=n>argc</span><span class=p>,</span> <span class=n>argv</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=n>Valu</span> <span class=o>*</span><span class=n>dut</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Valu</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=p>...</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div></div></li><li><p>运行可执行文件时带参数运行：</p><div class=highlight><div class=chroma><div class=table-container><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>verilator -Wall --trace --x-assign unique --x-initial unique -cc alu.sv --exe tb_alu.cpp
+</span></span></code></pre></td></tr></table></div></div></div></li></ul></div><p>该步执行完成，会在指定目录（默认<code>obj_dir</code>）下生成工程文件，其中<code>Valu.h</code>为类头文件，包含所有可调用接口，<code>Valu.mk</code>为<code>Makefile</code>。</p></li><li><p>编译可执行文件</p><div class=highlight><div class=chroma><div class=table-container><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>make -C obj_dir -f Valu.mk Valu
+</span></span></code></pre></td></tr></table></div></div></div><p>编译可执行文件，<code>-C</code>指定工程目录，<code>-f</code>选择工程文件，<code>Valu</code>为可执行文件名称。</p></li><li><p>运行仿真</p><div class=highlight><div class=chroma><div class=table-container><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>./obj_dir/Valu
+</span></span></code></pre></td></tr></table></div></div></div><p>运行仿真，会在当前目录生成波形或其他仿真文件。</p></li></ul><h2 id=如何编写testbench><a href=#如何编写testbench class=anchor-link><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96.0-59.27-59.26-59.27-155.7.0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757.0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037.0 01-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482.0 0120.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96.0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454.0 0020.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037.0 00-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639.0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>如何编写Testbench</h2><p>Verilator仿真器中，通过执行<code>eval()</code>步进仿真，并手动调用<code>dump()</code>记录，每次循环结构为:</p><pre tabindex=0><code>+------------+   +------+   +-----------+   +------+
+|invert clock+--&gt;|eval()+--&gt;|renew value+--&gt;|dump()|
++------------+   +------+   +-----------+   +------+
+</code></pre><p>具体直接看注释吧~</p><div class=highlight><div class=chroma><div class=table-container><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-c++ data-lang=c++><span class=line><span class=cl><span class=cp>#include</span> <span class=cpf>&lt;cstdlib&gt;</span><span class=cp>
+</span></span></span><span class=line><span class=cl><span class=cp>#include</span> <span class=cpf>&lt;iostream&gt;</span><span class=cp>
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=c1>// verilator仿真库文件
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>#include</span> <span class=cpf>&lt;verilated.h&gt;</span><span class=cp>
+</span></span></span><span class=line><span class=cl><span class=cp></span><span class=c1>// VCD波形库
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>#include</span> <span class=cpf>&lt;verilated_vcd_c.h&gt;</span><span class=cp>
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=c1>// 导入模型类
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>#include</span> <span class=cpf>&#34;Valu.h&#34;</span><span class=cp>
+</span></span></span><span class=line><span class=cl><span class=cp></span><span class=c1>// 导入模型中的enum
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>#include</span> <span class=cpf>&#34;Valu___024unit.h&#34;</span><span class=cp>
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=c1>// 终止时间
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>#define MAX_SIM_TIME 200
+</span></span></span><span class=line><span class=cl><span class=cp></span><span class=c1>// 全局仿真时间
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>vluint64_t</span> <span class=n>sim_time</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// 记录时钟周期
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>vluint64_t</span> <span class=n>posedge_cnt</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// 初始化函数
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kt>void</span> <span class=nf>dut_reset</span><span class=p>(</span><span class=n>Valu</span> <span class=o>*</span><span class=n>dut</span><span class=p>,</span> <span class=n>vluint64_t</span> <span class=o>&amp;</span><span class=n>sim_time</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=n>dut</span><span class=o>-&gt;</span><span class=n>rst</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>sim_time</span> <span class=o>&gt;=</span> <span class=mi>3</span> <span class=o>&amp;&amp;</span> <span class=n>sim_time</span> <span class=o>&lt;</span> <span class=mi>6</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>dut</span><span class=o>-&gt;</span><span class=n>rst</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>dut</span><span class=o>-&gt;</span><span class=n>a_in</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>dut</span><span class=o>-&gt;</span><span class=n>b_in</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>dut</span><span class=o>-&gt;</span><span class=n>op_in</span> <span class=o>=</span> <span class=n>Valu___024unit</span><span class=o>::</span><span class=n>nop</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>dut</span><span class=o>-&gt;</span><span class=n>in_valid</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kt>int</span> <span class=nf>main</span><span class=p>(</span><span class=kt>int</span> <span class=n>argc</span><span class=p>,</span> <span class=kt>char</span> <span class=o>**</span><span class=n>argv</span><span class=p>,</span> <span class=kt>char</span> <span class=o>**</span><span class=n>env</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// 初始化C++随机数生成器
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=n>srand</span><span class=p>(</span><span class=n>time</span><span class=p>(</span><span class=nb>NULL</span><span class=p>));</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// 向仿真器传入参数
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=n>Verilated</span><span class=o>::</span><span class=n>commandArgs</span><span class=p>(</span><span class=n>argc</span><span class=p>,</span> <span class=n>argv</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// 初始化电路模型
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=n>Valu</span> <span class=o>*</span><span class=n>dut</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Valu</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// 启用波形记录
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=n>Verilated</span><span class=o>::</span><span class=n>traceEverOn</span><span class=p>(</span><span class=nb>true</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// 创建波形
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=n>VerilatedVcdC</span> <span class=o>*</span><span class=n>m_trace</span> <span class=o>=</span> <span class=k>new</span> <span class=n>VerilatedVcdC</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// 指定波形和深度
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=n>dut</span><span class=o>-&gt;</span><span class=n>trace</span><span class=p>(</span><span class=n>m_trace</span><span class=p>,</span> <span class=mi>5</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// 打开波形文件
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=n>m_trace</span><span class=o>-&gt;</span><span class=n>open</span><span class=p>(</span><span class=s>&#34;waveform.vcd&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>while</span> <span class=p>(</span><span class=n>sim_time</span> <span class=o>&lt;</span> <span class=n>MAX_SIM_TIME</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=c1>// 初始化
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>dut_reset</span><span class=p>(</span><span class=n>dut</span><span class=p>,</span> <span class=n>sim_time</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=c1>// 时钟翻转
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>dut</span><span class=o>-&gt;</span><span class=n>clk</span> <span class=o>^=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=c1>// 计算波形
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>dut</span><span class=o>-&gt;</span><span class=n>eval</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=c1>// 检测上升沿 0-&gt;1
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=k>if</span> <span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>clk</span> <span class=o>==</span> <span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=c1>// 测试用例延迟，等待初始化结束
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=k>if</span> <span class=p>(</span><span class=n>sim_time</span> <span class=o>&gt;=</span> <span class=mi>10</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>                <span class=n>posedge_cnt</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=n>dut</span><span class=o>-&gt;</span><span class=n>op_in</span> <span class=o>=</span> <span class=n>Valu___024unit</span><span class=o>::</span><span class=n>nop</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=n>dut</span><span class=o>-&gt;</span><span class=n>in_valid</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=c1>// 输入加法测试用例
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=k>if</span> <span class=p>(</span><span class=n>posedge_cnt</span> <span class=o>==</span> <span class=mi>2</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=n>dut</span><span class=o>-&gt;</span><span class=n>a_in</span> <span class=o>=</span> <span class=n>rand</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>                <span class=n>dut</span><span class=o>-&gt;</span><span class=n>b_in</span> <span class=o>=</span> <span class=n>rand</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>                <span class=n>dut</span><span class=o>-&gt;</span><span class=n>op_in</span> <span class=o>=</span> <span class=n>Valu___024unit</span><span class=o>::</span><span class=n>add</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>dut</span><span class=o>-&gt;</span><span class=n>in_valid</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=c1>// 检查加法结果
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=k>if</span> <span class=p>(</span><span class=n>posedge_cnt</span> <span class=o>==</span> <span class=mi>4</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=k>if</span> <span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>out_valid</span> <span class=o>!=</span> <span class=mi>1</span> <span class=o>||</span> <span class=n>dut</span><span class=o>-&gt;</span><span class=n>out</span> <span class=o>!=</span> <span class=kt>uint8_t</span><span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>a_in</span> <span class=o>+</span> <span class=n>dut</span><span class=o>-&gt;</span><span class=n>b_in</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>                    <span class=n>std</span><span class=o>::</span><span class=n>cout</span> <span class=o>&lt;&lt;</span> <span class=s>&#34;ERROR: add mismatch, &#34;</span>
+</span></span><span class=line><span class=cl>                              <span class=o>&lt;&lt;</span> <span class=s>&#34;input: a=&#34;</span> <span class=o>&lt;&lt;</span> <span class=kt>int</span><span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>a_in</span><span class=p>)</span> <span class=o>&lt;&lt;</span> <span class=s>&#34;, &#34;</span>
+</span></span><span class=line><span class=cl>                              <span class=o>&lt;&lt;</span> <span class=s>&#34;b=&#34;</span> <span class=o>&lt;&lt;</span> <span class=kt>int</span><span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>b_in</span><span class=p>)</span> <span class=o>&lt;&lt;</span> <span class=s>&#34;, &#34;</span>
+</span></span><span class=line><span class=cl>                              <span class=o>&lt;&lt;</span> <span class=s>&#34;exp: &#34;</span> <span class=o>&lt;&lt;</span> <span class=kt>int</span><span class=p>(</span><span class=kt>uint8_t</span><span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>a_in</span> <span class=o>+</span> <span class=n>dut</span><span class=o>-&gt;</span><span class=n>b_in</span><span class=p>))</span> <span class=o>&lt;&lt;</span> <span class=s>&#34;, &#34;</span>
+</span></span><span class=line><span class=cl>                              <span class=o>&lt;&lt;</span> <span class=s>&#34;recv:&#34;</span> <span class=o>&lt;&lt;</span> <span class=kt>int</span><span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>out</span><span class=p>)</span> <span class=o>&lt;&lt;</span> <span class=s>&#34;, &#34;</span>
+</span></span><span class=line><span class=cl>                              <span class=o>&lt;&lt;</span> <span class=s>&#34;simtime:&#34;</span> <span class=o>&lt;&lt;</span> <span class=kt>int</span><span class=p>(</span><span class=n>sim_time</span><span class=p>)</span> <span class=o>&lt;&lt;</span> <span class=n>std</span><span class=o>::</span><span class=n>endl</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=c1>// 输入减法测试用例
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=k>if</span> <span class=p>(</span><span class=n>posedge_cnt</span> <span class=o>==</span> <span class=mi>6</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=n>dut</span><span class=o>-&gt;</span><span class=n>a_in</span> <span class=o>=</span> <span class=n>rand</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>                <span class=n>dut</span><span class=o>-&gt;</span><span class=n>b_in</span> <span class=o>=</span> <span class=n>rand</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>                <span class=n>dut</span><span class=o>-&gt;</span><span class=n>op_in</span> <span class=o>=</span> <span class=n>Valu___024unit</span><span class=o>::</span><span class=n>sub</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>dut</span><span class=o>-&gt;</span><span class=n>in_valid</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=c1>// 检查减法结果
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=k>if</span> <span class=p>(</span><span class=n>posedge_cnt</span> <span class=o>==</span> <span class=mi>8</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=k>if</span> <span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>out_valid</span> <span class=o>!=</span> <span class=mi>1</span> <span class=o>||</span> <span class=n>dut</span><span class=o>-&gt;</span><span class=n>out</span> <span class=o>!=</span> <span class=kt>uint8_t</span><span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>a_in</span> <span class=o>-</span> <span class=n>dut</span><span class=o>-&gt;</span><span class=n>b_in</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>                    <span class=n>std</span><span class=o>::</span><span class=n>cout</span> <span class=o>&lt;&lt;</span> <span class=s>&#34;ERROR: sub mismatch, &#34;</span>
+</span></span><span class=line><span class=cl>                              <span class=o>&lt;&lt;</span> <span class=s>&#34;input: a=&#34;</span> <span class=o>&lt;&lt;</span> <span class=kt>int</span><span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>a_in</span><span class=p>)</span> <span class=o>&lt;&lt;</span> <span class=s>&#34;, &#34;</span>
+</span></span><span class=line><span class=cl>                              <span class=o>&lt;&lt;</span> <span class=s>&#34;b=&#34;</span> <span class=o>&lt;&lt;</span> <span class=kt>int</span><span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>b_in</span><span class=p>)</span> <span class=o>&lt;&lt;</span> <span class=s>&#34;, &#34;</span>
+</span></span><span class=line><span class=cl>                              <span class=o>&lt;&lt;</span> <span class=s>&#34;exp: &#34;</span> <span class=o>&lt;&lt;</span> <span class=kt>int</span><span class=p>(</span><span class=kt>uint8_t</span><span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>a_in</span> <span class=o>-</span> <span class=n>dut</span><span class=o>-&gt;</span><span class=n>b_in</span><span class=p>))</span> <span class=o>&lt;&lt;</span> <span class=s>&#34;, &#34;</span>
+</span></span><span class=line><span class=cl>                              <span class=o>&lt;&lt;</span> <span class=s>&#34;recv:&#34;</span> <span class=o>&lt;&lt;</span> <span class=kt>int</span><span class=p>(</span><span class=n>dut</span><span class=o>-&gt;</span><span class=n>out</span><span class=p>)</span> <span class=o>&lt;&lt;</span> <span class=s>&#34;, &#34;</span>
+</span></span><span class=line><span class=cl>                              <span class=o>&lt;&lt;</span> <span class=s>&#34;simtime:&#34;</span> <span class=o>&lt;&lt;</span> <span class=kt>int</span><span class=p>(</span><span class=n>sim_time</span><span class=p>)</span> <span class=o>&lt;&lt;</span> <span class=n>std</span><span class=o>::</span><span class=n>endl</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=n>posedge_cnt</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=c1>// 记录当前时刻波形
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>m_trace</span><span class=o>-&gt;</span><span class=n>dump</span><span class=p>(</span><span class=n>sim_time</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=c1>// 全局时钟计时
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>sim_time</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// 关闭波形文件
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=n>m_trace</span><span class=o>-&gt;</span><span class=n>close</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// 释放内存
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=k>delete</span> <span class=n>dut</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=n>exit</span><span class=p>(</span><span class=n>EXIT_SUCCESS</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div></div><p>仿真结果如下图所示，注意76ps时钟上升沿处，由于输入值更新在步进仿真后，<code>in_valid</code>值尚未由0变1，仿真不读入输入数据，同理，78ps时钟上升沿处，<code>in_valid</code>值尚未从1变0，读入数据，一周期后输出有效。</p><p><img src=https://img.ioyoi.me/20230627204823.webp alt=image-20230627204815218></p><div class="note info"><p>Testbench中使用了<code>Valu___024unit.h</code>中的<code>enum operation_t</code>，若想生成对应的C++ <code>enum</code>，需要在SystemVerilog代码中添加辅助注释：</p><div class=highlight><div class=chroma><div class=table-container><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-systemverilog data-lang=systemverilog><span class=line><span class=cl><span class=k>typedef</span> <span class=k>enum</span> <span class=k>logic</span> <span class=p>[</span><span class=mh>1</span><span class=o>:</span><span class=mh>0</span><span class=p>]</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=n>add</span> <span class=o>=</span> <span class=mh>2&#39;h1</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>  <span class=n>sub</span> <span class=o>=</span> <span class=mh>2&#39;h2</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>  <span class=n>nop</span> <span class=o>=</span> <span class=mh>2&#39;h0</span>
+</span></span><span class=line><span class=cl><span class=p>}</span> <span class=n>operation_t</span> <span class=cm>/*verilator public*/</span><span class=p>;</span>
+</span></span></code></pre></td></tr></table></div></div></div></div><h2 id=再送一个makefile><a href=#再送一个makefile class=anchor-link><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96.0-59.27-59.26-59.27-155.7.0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757.0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037.0 01-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482.0 0120.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96.0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454.0 0020.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037.0 00-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639.0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>再送一个Makefile</h2><div class=highlight><div class=chroma><div class=table-container><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-makefile data-lang=makefile><span class=line><span class=cl><span class=nv>MODULE</span><span class=o>=</span>alu
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c># 运行仿真
+</span></span></span><span class=line><span class=cl><span class=c></span><span class=nf>.PHONY</span><span class=o>:</span><span class=n>sim</span>
+</span></span><span class=line><span class=cl><span class=nf>sim</span><span class=o>:</span> <span class=n>waveform</span>.<span class=n>vcd</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c># 仅生成工程文件
+</span></span></span><span class=line><span class=cl><span class=c></span><span class=nf>.PHONY</span><span class=o>:</span><span class=n>verilate</span>
+</span></span><span class=line><span class=cl><span class=nf>verilate</span><span class=o>:</span> .<span class=n>stamp</span>.<span class=n>verilate</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c># 生成工程文件并编译
+</span></span></span><span class=line><span class=cl><span class=c></span><span class=nf>.PHONY</span><span class=o>:</span><span class=n>build</span>
+</span></span><span class=line><span class=cl><span class=nf>build</span><span class=o>:</span> ./<span class=n>obj_dir</span>/<span class=n>V</span><span class=k>$(</span><span class=nv>MODULE</span><span class=k>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c># 仿真并查看波形
+</span></span></span><span class=line><span class=cl><span class=c></span><span class=nf>.PHONY</span><span class=o>:</span><span class=n>waves</span>
+</span></span><span class=line><span class=cl><span class=nf>waves</span><span class=o>:</span> <span class=n>waveform</span>.<span class=n>vcd</span>
+</span></span><span class=line><span class=cl>	@echo
+</span></span><span class=line><span class=cl>	@echo <span class=s2>&#34;### WAVES ###&#34;</span>
+</span></span><span class=line><span class=cl>	gtkwave waveform.vcd
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nf>waveform.vcd</span><span class=o>:</span> ./<span class=n>obj_dir</span>/<span class=n>V</span><span class=k>$(</span><span class=nv>MODULE</span><span class=k>)</span>
+</span></span><span class=line><span class=cl>	@echo
+</span></span><span class=line><span class=cl>	@echo <span class=s2>&#34;### SIMULATING ###&#34;</span>
+</span></span><span class=line><span class=cl>	@./obj_dir/V<span class=k>$(</span>MODULE<span class=k>)</span> +verilator+rand+reset+2
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nf>./obj_dir/V$(MODULE)</span><span class=o>:</span> .<span class=n>stamp</span>.<span class=n>verilate</span>
+</span></span><span class=line><span class=cl>	@echo
+</span></span><span class=line><span class=cl>	@echo <span class=s2>&#34;### BUILDING SIM ###&#34;</span>
+</span></span><span class=line><span class=cl>	make -C obj_dir -f V<span class=k>$(</span>MODULE<span class=k>)</span>.mk V<span class=k>$(</span>MODULE<span class=k>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nf>.stamp.verilate</span><span class=o>:</span> <span class=k>$(</span><span class=nv>MODULE</span><span class=k>)</span>.<span class=n>sv</span> <span class=n>tb_</span><span class=k>$(</span><span class=nv>MODULE</span><span class=k>)</span>.<span class=n>cpp</span>
+</span></span><span class=line><span class=cl>	@echo
+</span></span><span class=line><span class=cl>	@echo <span class=s2>&#34;### VERILATING ###&#34;</span>
+</span></span><span class=line><span class=cl>	verilator -Wall --trace --x-assign unique --x-initial unique -cc <span class=k>$(</span>MODULE<span class=k>)</span>.sv --exe tb_<span class=k>$(</span>MODULE<span class=k>)</span>.cpp
+</span></span><span class=line><span class=cl>	@touch .stamp.verilate
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c># 格式化代码
+</span></span></span><span class=line><span class=cl><span class=c></span><span class=nf>.PHONY</span><span class=o>:</span><span class=n>lint</span>
+</span></span><span class=line><span class=cl><span class=nf>lint</span><span class=o>:</span> <span class=k>$(</span><span class=nv>MODULE</span><span class=k>)</span>.<span class=n>sv</span>
+</span></span><span class=line><span class=cl>	verilator --lint-only <span class=k>$(</span>MODULE<span class=k>)</span>.sv
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nf>.PHONY</span><span class=o>:</span><span class=n>clean</span>
+</span></span><span class=line><span class=cl><span class=nf>clean</span><span class=o>:</span>
+</span></span><span class=line><span class=cl>	rm -rf .stamp.*<span class=p>;</span>
+</span></span><span class=line><span class=cl>	rm -rf ./obj_dir
+</span></span><span class=line><span class=cl>	rm -rf waveform.vcd
+</span></span></code></pre></td></tr></table></div></div></div><ul><li><code>make sim</code>：直接运行仿真；</li><li><code>make build</code>：生成工程并编译可执行文件；</li><li><code>make verilate</code>：仅转换Verilog代码生成工程；</li><li><code>make waves</code>：仿真并通过<code>gtkwave</code>查看波形；</li><li><code>make lint</code>：格式化Verilog代码；</li><li><code>make clean</code>：清理。</li></ul><h1 id=附录使用的算术逻辑单元><a href=#附录使用的算术逻辑单元 class=anchor-link><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96.0-59.27-59.26-59.27-155.7.0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757.0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037.0 01-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482.0 0120.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96.0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454.0 0020.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037.0 00-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639.0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>附录：使用的算术逻辑单元</h1><div class=highlight><div class=chroma><div class=table-container><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-systemverilog data-lang=systemverilog><span class=line><span class=cl><span class=k>typedef</span> <span class=k>enum</span> <span class=k>logic</span> <span class=p>[</span><span class=mh>1</span><span class=o>:</span><span class=mh>0</span><span class=p>]</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=n>add</span> <span class=o>=</span> <span class=mh>2&#39;h1</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>  <span class=n>sub</span> <span class=o>=</span> <span class=mh>2&#39;h2</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>  <span class=n>nop</span> <span class=o>=</span> <span class=mh>2&#39;h0</span>
+</span></span><span class=line><span class=cl><span class=p>}</span> <span class=n>operation_t</span> <span class=cm>/*verilator public*/</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>module</span> <span class=n>alu</span> <span class=p>#(</span>
+</span></span><span class=line><span class=cl>    <span class=k>parameter</span> <span class=n>WIDTH</span> <span class=o>=</span> <span class=mh>8</span>
+</span></span><span class=line><span class=cl><span class=p>)</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>    <span class=k>input</span> <span class=n>clk</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=k>input</span> <span class=n>rst</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>input</span> <span class=n>operation_t</span> <span class=n>op_in</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=k>input</span> <span class=p>[</span><span class=n>WIDTH</span><span class=o>-</span><span class=mh>1</span><span class=o>:</span><span class=mh>0</span><span class=p>]</span> <span class=n>a_in</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=k>input</span> <span class=p>[</span><span class=n>WIDTH</span><span class=o>-</span><span class=mh>1</span><span class=o>:</span><span class=mh>0</span><span class=p>]</span> <span class=n>b_in</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=k>input</span> <span class=n>in_valid</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>output</span> <span class=k>logic</span> <span class=p>[</span><span class=n>WIDTH</span><span class=o>-</span><span class=mh>1</span><span class=o>:</span><span class=mh>0</span><span class=p>]</span> <span class=n>out</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=k>output</span> <span class=k>logic</span> <span class=n>out_valid</span>
+</span></span><span class=line><span class=cl><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=n>operation_t</span> <span class=n>op_in_r</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=k>logic</span> <span class=p>[</span><span class=n>WIDTH</span><span class=o>-</span><span class=mh>1</span><span class=o>:</span><span class=mh>0</span><span class=p>]</span> <span class=n>a_in_r</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=k>logic</span> <span class=p>[</span><span class=n>WIDTH</span><span class=o>-</span><span class=mh>1</span><span class=o>:</span><span class=mh>0</span><span class=p>]</span> <span class=n>b_in_r</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=k>logic</span> <span class=n>in_valid_r</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=k>logic</span> <span class=p>[</span><span class=n>WIDTH</span><span class=o>-</span><span class=mh>1</span><span class=o>:</span><span class=mh>0</span><span class=p>]</span> <span class=n>result</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=k>always_ff</span> <span class=p>@(</span><span class=k>posedge</span> <span class=n>clk</span><span class=p>,</span> <span class=k>posedge</span> <span class=n>rst</span><span class=p>)</span> <span class=k>begin</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>rst</span><span class=p>)</span> <span class=k>begin</span>
+</span></span><span class=line><span class=cl>      <span class=n>op_in_r</span> <span class=o>&lt;=</span> <span class=n>nop</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>      <span class=n>a_in_r</span> <span class=o>&lt;=</span> <span class=m>&#39;0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>      <span class=n>b_in_r</span> <span class=o>&lt;=</span> <span class=m>&#39;0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>      <span class=n>in_valid_r</span> <span class=o>&lt;=</span> <span class=m>&#39;0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=k>end</span> <span class=k>else</span> <span class=k>begin</span>
+</span></span><span class=line><span class=cl>      <span class=n>op_in_r</span> <span class=o>&lt;=</span> <span class=n>op_in</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>      <span class=n>a_in_r</span> <span class=o>&lt;=</span> <span class=n>a_in</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>      <span class=n>b_in_r</span> <span class=o>&lt;=</span> <span class=n>b_in</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>      <span class=n>in_valid_r</span> <span class=o>&lt;=</span> <span class=n>in_valid</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=k>end</span>
+</span></span><span class=line><span class=cl>  <span class=k>end</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=k>always_comb</span> <span class=k>begin</span>
+</span></span><span class=line><span class=cl>    <span class=n>result</span> <span class=o>=</span> <span class=m>&#39;0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>in_valid_r</span><span class=p>)</span> <span class=k>begin</span>
+</span></span><span class=line><span class=cl>      <span class=k>case</span> <span class=p>(</span><span class=n>op_in_r</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=nl>add:</span> <span class=n>result</span> <span class=o>=</span> <span class=n>a_in_r</span> <span class=o>+</span> <span class=n>b_in_r</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=nl>sub:</span> <span class=n>result</span> <span class=o>=</span> <span class=n>a_in_r</span> <span class=o>+</span> <span class=p>(</span><span class=o>~</span><span class=n>b_in_r</span> <span class=o>+</span> <span class=mh>1</span><span class=mb>&#39;b1</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=k>default</span><span class=o>:</span> <span class=n>result</span> <span class=o>=</span> <span class=m>&#39;0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>      <span class=k>endcase</span>
+</span></span><span class=line><span class=cl>    <span class=k>end</span>
+</span></span><span class=line><span class=cl>  <span class=k>end</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=k>always_ff</span> <span class=p>@(</span><span class=k>posedge</span> <span class=n>clk</span><span class=p>,</span> <span class=k>posedge</span> <span class=n>rst</span><span class=p>)</span> <span class=k>begin</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>rst</span><span class=p>)</span> <span class=k>begin</span>
+</span></span><span class=line><span class=cl>      <span class=n>out</span> <span class=o>&lt;=</span> <span class=m>&#39;0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>      <span class=n>out_valid</span> <span class=o>&lt;=</span> <span class=m>&#39;0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=k>end</span> <span class=k>else</span> <span class=k>begin</span>
+</span></span><span class=line><span class=cl>      <span class=n>out</span> <span class=o>&lt;=</span> <span class=n>result</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>      <span class=n>out_valid</span> <span class=o>&lt;=</span> <span class=n>in_valid_r</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=k>end</span>
+</span></span><span class=line><span class=cl>  <span class=k>end</span>
+</span></span><span class=line><span class=cl><span class=k>endmodule</span>
+</span></span></code></pre></td></tr></table></div></div></div><h2 id=参考资料><a href=#参考资料 class=anchor-link><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96.0-59.27-59.26-59.27-155.7.0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757.0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037.0 01-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482.0 0120.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96.0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454.0 0020.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037.0 00-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639.0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>参考资料</h2><ol><li><a href=https://verilator.org/guide/latest/index.html target=_blank rel=noopener>Verilator Doc</a></li><li><a href=https://itsembedded.com/dhd/verilator_1/ target=_blank rel=noopener>Verilator Pt.1: Introduction</a></li><li><a href=https://itsembedded.com/dhd/verilator_2/ target=_blank rel=noopener>Verilator Pt.2: Basics of SystemVerilog verification using C++</a></li><li><a href=https://itsembedded.com/dhd/verilator_3/ target=_blank rel=noopener>Verilator Pt.3: Traditional style verification example</a></li></ol></div></article><div class=post-share><div class=share-items><div class="share-item twitter"><a href="https://twitter.com/share?url=https://ioyoi.me/tech/verilator-tutorial/&amp;text=Verilator%e4%bb%bf%e7%9c%9f%e5%99%a8%e5%85%a5%e9%97%a8&amp;hashtags=fpga,verilator,systemverilog,tutorial,&amp;via=ShaohangWang" title=分享到「Twitter」 target=_blank rel=noopener><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon twitter-icon"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg></a></div><div class="share-item telegram"><a href="https://t.me/share/url?url=https://ioyoi.me/tech/verilator-tutorial/&amp;text=Verilator%e4%bb%bf%e7%9c%9f%e5%99%a8%e5%85%a5%e9%97%a8" title=分享到「Telegram」 target=_blank rel=noopener><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon telegram-icon"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm121.8 169.9-40.7 191.8c-3 13.6-11.1 16.9-22.4 10.5l-62-45.7-29.9 28.8c-3.3 3.3-6.1 6.1-12.5 6.1l4.4-63.1 114.9-103.8c5-4.4-1.1-6.9-7.7-2.5l-142 89.4-61.2-19.1c-13.3-4.2-13.6-13.3 2.8-19.7l239.1-92.2c11.1-4 20.8 2.7 17.2 19.5z"/></svg></a></div><div class="share-item weibo"><a href="https://service.weibo.com/share/share.php?&amp;url=https://ioyoi.me/tech/verilator-tutorial/&amp;title=Verilator%e4%bb%bf%e7%9c%9f%e5%99%a8%e5%85%a5%e9%97%a8&amp;pic=https://img.ioyoi.me/20230627204823.webp&amp;searchPic=false" title=分享到「新浪微博」 target=_blank rel=noopener><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon weibo-icon"><path d="M407 177.6c7.6-24-13.4-46.8-37.4-41.7-22 4.8-28.8-28.1-7.1-32.8 50.1-10.9 92.3 37.1 76.5 84.8-6.8 21.2-38.8 10.8-32-10.3zM214.8 446.7C108.5 446.7.0 395.3.0 310.4c0-44.3 28-95.4 76.3-143.7C176 67 279.5 65.8 249.9 161c-4 13.1 12.3 5.7 12.3 6 79.5-33.6 140.5-16.8 114 51.4-3.7 9.4 1.1 10.9 8.3 13.1 135.7 42.3 34.8 215.2-169.7 215.2zm143.7-146.3c-5.4-55.7-78.5-94-163.4-85.7-84.8 8.6-148.8 60.3-143.4 116s78.5 94 163.4 85.7c84.8-8.6 148.8-60.3 143.4-116zM347.9 35.1c-25.9 5.6-16.8 43.7 8.3 38.3 72.3-15.2 134.8 52.8 111.7 124-7.4 24.2 29.1 37 37.4 12 31.9-99.8-55.1-195.9-157.4-174.3zm-78.5 311c-17.1 38.8-66.8 60-109.1 46.3-40.8-13.1-58-53.4-40.3-89.7 17.7-35.4 63.1-55.4 103.4-45.1 42 10.8 63.1 50.2 46 88.5zm-86.3-30c-12.9-5.4-30 .3-38 12.9-8.3 12.9-4.3 28 8.6 34 13.1 6 30.8.3 39.1-12.9 8-13.1 3.7-28.3-9.7-34zm32.6-13.4c-5.1-1.7-11.4.6-14.3 5.4-2.9 5.1-1.4 10.6 3.7 12.9 5.1 2 11.7-.3 14.6-5.4 2.8-5.2 1.1-10.9-4-12.9z"/></svg></a></div><div class="share-item qrcode"><div class=qrcode-container title=通过「二维码」><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon qrcode-icon"><path d="M0 224h192V32H0v192zM64 96h64v64H64V96zm192-64v192h192V32H256zm128 128h-64V96h64v64zM0 480h192V288H0v192zm64-128h64v64H64v-64zm352-64h32v128h-96v-32h-32v96h-64V288h96v32h64v-32zm0 160h32v32h-32v-32zm-64 0h32v32h-32v-32z"/></svg><div id=qrcode-img></div></div><script src=https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js></script>
+<script>const typeNumber=0,errorCorrectionLevel="L",qr=qrcode(typeNumber,errorCorrectionLevel);qr.addData("https://ioyoi.me/tech/verilator-tutorial/"),qr.make(),document.getElementById("qrcode-img").innerHTML=qr.createImgTag()</script></div></div></div><div class=related-posts><h2 class=related-title>相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6.0-12-5.4-12-12v-92h-92c-6.6.0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6.0 12 5.4 12 12v92h92c6.6.0 12 5.4 12 12v56z"/></svg></h2><ul class=related-list><li class=related-item><a href=/tech/pynq-1-verilog-ip/ class=related-link>PYNQ学习·第一个IP核</a></li><li class=related-item><a href=/tech/upgrade-to-caddy2/ class=related-link>升级到Caddy2</a></li><li class=related-item><a href=/tech/simulink-to-c/ class=related-link>Simulink生成C++代码</a></li></ul></div><div class=post-tags><a href=/tags/fpga/ rel=tag class=post-tags-link><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49.0 48 0h204.118a48 48 0 0133.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137.0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882.0L14.059 286.059A48 48 0 010 252.118zM112 64c-26.51.0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>fpga</a>
+<a href=/tags/verilator/ rel=tag class=post-tags-link><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49.0 48 0h204.118a48 48 0 0133.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137.0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882.0L14.059 286.059A48 48 0 010 252.118zM112 64c-26.51.0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>verilator</a>
+<a href=/tags/systemverilog/ rel=tag class=post-tags-link><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49.0 48 0h204.118a48 48 0 0133.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137.0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882.0L14.059 286.059A48 48 0 010 252.118zM112 64c-26.51.0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>systemverilog</a>
+<a href=/tags/tutorial/ rel=tag class=post-tags-link><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49.0 48 0h204.118a48 48 0 0133.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137.0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882.0L14.059 286.059A48 48 0 010 252.118zM112 64c-26.51.0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>tutorial</a></div><ul class=post-nav><li class=post-nav-next><a href=/tech/pmsm-1/ rel=next>永磁同步电机的闭环控制·PMSM电机与坐标变换 ></a></li></ul><div class=load-comments><div id=load-comments>加载评论</div></div><div id=disqus_thread></div></div></main><div id=back-to-top class=back-to-top><a href=#><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon arrow-up"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6.0-33.9L207 39c9.4-9.4 24.6-9.4 33.9.0l194.3 194.3c9.4 9.4 9.4 24.6.0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3.0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a></div><footer id=footer class=footer><div class=footer-inner><div class=site-info>©&nbsp;2020–2023&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3.0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;EvernessW</div><div class=powered-by>Powered by <a href=https://github.com/gohugoio/hugo target=_blank rel=noopener>Hugo</a> | Theme is <a href=https://github.com/reuixiy/hugo-theme-meme target=_blank rel=noopener>MemE</a></div><div class=custom-footer><a href="https://icp.gov.moe/?keyword=20230416" target=_blank rel=noopener>萌ICP备20230416号</a></div></div></footer></div><script>"serviceWorker"in navigator&&window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js")})</script><script>function loadComments(){if(!document.getElementById("disqus_thread"))return;if(typeof DISQUS=="undefined"){const e=function(){this.page.url="https://ioyoi.me/tech/verilator-tutorial/",this.page.identifier="/tech/verilator-tutorial/",this.page.title="Verilator仿真器入门"};(function(){const t=document,e=t.createElement("script");e.async=!0,e.src="https://ioyoi.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)})()}else DISQUS.reset({reload:!0,config:function(){this.page.url="https://ioyoi.me/tech/verilator-tutorial/",this.page.identifier="/tech/verilator-tutorial/",this.page.title="Verilator仿真器入门"}})}</script><script src=https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js></script>
+<script>let imgNodes=document.querySelectorAll("div.post-body img");imgNodes=Array.from(imgNodes).filter(e=>e.parentNode.tagName!=="A"),mediumZoom(imgNodes,{background:"hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)"})</script><script src=https://cdn.jsdelivr.net/npm/instant.page@5.1.0/instantpage.min.js type=module defer></script></body></html>
