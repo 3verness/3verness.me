@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.120.4 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Thu, 16 Nov 2023 09:21:10 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>Verilator仿真器入门</title><link>https://ioyoi.me/tech/verilator-tutorial/</link><guid isPermaLink="true">https://ioyoi.me/tech/verilator-tutorial/</guid><pubDate>Tue, 27 Jun 2023 20:58:24 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="why-verilator">Why Verilator?&lt;/h2>
+<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.120.4 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Thu, 16 Nov 2023 09:45:02 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>Verilator仿真器入门</title><link>https://ioyoi.me/tech/verilator-tutorial/</link><guid isPermaLink="true">https://ioyoi.me/tech/verilator-tutorial/</guid><pubDate>Tue, 27 Jun 2023 20:58:24 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="why-verilator">Why Verilator?&lt;/h2>
 &lt;ul>
 &lt;li>唯一支持SystemVerilog 2017标准的开源Verilog Simulator；&lt;/li>
 &lt;li>将Verilog编译为C++或SystemC类，更为方便的进行性能测试和仿真；&lt;/li>
@@ -2014,10 +2014,10 @@ auto=https://music.163.com/#/song?id&amp;#61;32046766>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
 &lt;/div>&lt;div class="friends">
-&lt;p>&lt;a target="_blank" href=https://oi-io.me title=3verness class="friendurl">&lt;/p>
+&lt;p>&lt;a target="_blank" href=https://ioyoi.me title=3verness class="friendurl">&lt;/p>
 &lt;div class="friendblock">
 &lt;div class="friendblockleft">
-&lt;img class="friend" src=https://oi-io.me/favicon.ico />
+&lt;img class="friend" src=https://ioyoi.me/favicon.ico />
 &lt;/div>
 &lt;div class="friendblockright">
 &lt;b class="friendname">3verness&lt;/b>&lt;br />To discover. To change.
@@ -2239,7 +2239,7 @@ auto=https://music.163.com/#/song?id&amp;#61;32046766>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{{&lt;/span>&lt;span class="o">-&lt;/span> &lt;span class="nx">end&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="p">}}]);&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div>&lt;p>随后编写Golang脚本，遍历根目录下的所有文件，并计算其MD5值，最后应用模板生成文件。完整代码见&lt;a href="https://git.everness.me/Everness/workbox">Gitea&lt;/a>。&lt;/p>
+&lt;/div>&lt;p>随后编写Golang脚本，遍历根目录下的所有文件，并计算其MD5值，最后应用模板生成文件。完整代码见&lt;a href="https://github.com/3verness/workbox">Github&lt;/a>。&lt;/p>
 &lt;h2 id="效果">效果&lt;/h2>
 &lt;p>速度比&lt;code>workbox-cli&lt;/code>要快得多，从提交到生成完毕只需要2秒左右，更主要的是不需要解决依赖问题，单可执行文件即可运行。&lt;/p>
 &lt;p>&lt;img src="https://img.ioyoi.me/20200710172017.webp" alt="">&lt;/p></description><category domain="https://ioyoi.me/tech/">tech</category><category domain="https://ioyoi.me/tags/golang/">golang</category><category domain="https://ioyoi.me/tags/blog/">blog</category></item><item><title>升级到Caddy2</title><link>https://ioyoi.me/tech/upgrade-to-caddy2/</link><guid isPermaLink="true">https://ioyoi.me/tech/upgrade-to-caddy2/</guid><pubDate>Fri, 10 Jul 2020 09:18:31 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;p>两个月前，Caddy更新了v2版本，相比v1版本，其主要特点是：&lt;/p>
@@ -2782,7 +2782,7 @@ reverse_proxy @v2ray_websocket localhost:10000
 &lt;p>我已经习惯了看字幕听个响的观影方式，但我依然希望中配能够继续进步，期待着不久后，国内将改变知名演员强行配音的现状，衍生出专注于配音的声优职业，带给我们更加丰富的观影体验。&lt;/p></description><category domain="https://ioyoi.me/dream/">dream</category><category domain="https://ioyoi.me/tags/anime/">anime</category><category domain="https://ioyoi.me/tags/movie/">movie</category></item><item><title>青年</title><link>https://ioyoi.me/life/the-youth/</link><guid isPermaLink="true">https://ioyoi.me/life/the-youth/</guid><pubDate>Mon, 04 May 2020 23:28:07 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;div style="position: relative; padding: 30% 45%;">&lt;iframe style="position: absolute; width: 90%; height: 100%; left: 5%; top: 0;" src="https://ioyoi.me//player.bilibili.com/player.html?bvid=BV1FV411d7u7&amp;page=1&amp;as_wide=1&amp;high_quality=1&amp;danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> &lt;/iframe>&lt;/div>
 &lt;p>五四青年节，被B站的宣传视频刷屏。&lt;/p>
 &lt;p>我承认，此时此刻，我的确生活在一个幸福的时代。有父母的支持，我可以随心所欲地旅行，投资自己的爱好。但遗憾的是，这一切都是拜父母所赐，我离“不惑”，也还差的远。二十多年，我仍不知道自己需要些什么，不断怀疑，我以后的生活，会比现在更好吗？&lt;/p>
-&lt;p>最后，我选择了&amp;quot;&lt;strong>enjoy in time&lt;/strong>&amp;quot;，是逃避，也是在挣扎着生活。这种选择是否正确，我无重得知，我看到的只是，身边的中年人，很少得到快乐。也许享受，只是青年人的特权。&lt;/p>
+&lt;p>最后，我选择了&amp;quot;&lt;strong>enjoy in time&lt;/strong>&amp;quot;，是逃避，也是在挣扎着生活。这种选择是否正确，我无从得知，我看到的只是，身边的中年人，很少得到快乐。也许享受，只是青年人的特权。&lt;/p>
 &lt;p>青年的我，不想做后浪，不需被认可，亦不需礼赞，我只是想及时行乐，没心没肺地生活。&lt;/p>
 &lt;p>青年说，这样就好。&lt;/p></description><category domain="https://ioyoi.me/life/">life</category><category domain="https://ioyoi.me/tags/thinking/">thinking</category></item><item><title>谈谈我用过的VPS们</title><link>https://ioyoi.me/tech/talk-about-vps/</link><guid isPermaLink="true">https://ioyoi.me/tech/talk-about-vps/</guid><pubDate>Tue, 28 Apr 2020 18:13:07 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="前言">前言&lt;/h2>
 &lt;p>前些日子做梯子的VPS IP地址被谷歌学术禁用了，在Vultr刷了好久的IP，一直找不到一个墙内能用的，于是告别了用了快两年的服务器，开始寻找新的服务提供商，正好结合之前用的一些线路体验，整理成了这篇文章。&lt;/p>
