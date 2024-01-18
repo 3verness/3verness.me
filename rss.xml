@@ -1,4 +1,366 @@
-<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.121.2 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Mon, 15 Jan 2024 18:52:14 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>Learn STM32 the Hard Way·2 认识GPIO</title><link>https://ioyoi.me/tech/learn-stm32-2/</link><guid isPermaLink="true">https://ioyoi.me/tech/learn-stm32-2/</guid><pubDate>Mon, 15 Jan 2024 02:31:06 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="重新认识stm32">重新认识STM32&lt;/h2>
+<?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Evergarden</title><link>https://ioyoi.me/</link><description>Evergarden is a blog written by EvernessW.</description><generator>Hugo 0.121.2 https://gohugo.io/</generator><language>zh-CN</language><managingEditor>3verness@gmail.com (EvernessW)</managingEditor><webMaster>3verness@gmail.com (EvernessW)</webMaster><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><lastBuildDate>Thu, 18 Jan 2024 16:50:52 +0000</lastBuildDate><atom:link rel="self" type="application/rss+xml" href="https://ioyoi.me/rss.xml"/><item><title>Learn STM32 the Hard Way·3 STM32调试方法</title><link>https://ioyoi.me/tech/learn-stm32-3/</link><guid isPermaLink="true">https://ioyoi.me/tech/learn-stm32-3/</guid><pubDate>Thu, 18 Jan 2024 22:45:04 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;p>当我们进行试验时，你也许会发现STM32的调试十分困难，很多时候你只能不停地对照例程、修改代码，而不知道程序错在了哪里，那么这一节，我们将暂停外设的学习，来看看如何方便快捷的调试STM32程序。&lt;/p>
+&lt;p>首先我们来谈谈STM32的调试有哪些特别之处：&lt;/p>
+&lt;ul>
+&lt;li>与51单片机不同，STM32基于ARM架构，支持先进的调试功能，可以进行在线仿真，搭配gdb可以实现断点、单步执行、监视寄存器和内存等高级调试功能；&lt;/li>
+&lt;li>与在计算机编程不同，STM32本身没有显示屏、键盘等输出和输入设备，我们无法直接通过&lt;code>printf&lt;/code>输出日志信息。&lt;/li>
+&lt;/ul>
+&lt;p>基于以上两个特点，本节将介绍gdb调试和Semihosting（半主机模式）两种常用的STM32的调试方法。&lt;/p>
+&lt;h2 id="gdb调试">gdb调试&lt;/h2>
+&lt;p>当我们烧写程序时，OpenOCD会通过SWD调试接口创建一个gdb服务器，在第一节中，我们已经尝试了一下这个功能，本节我们将更加详细的介绍cortex-debug工具的使用。&lt;/p>
+&lt;p>让我们从配置文件说起吧：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;version&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;0.2.0&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;configurations&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;cwd&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;${workspaceRoot}&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;type&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;cortex-debug&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;request&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;launch&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;name&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;openocd&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;servertype&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;openocd&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;executable&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;build\\Debug\\gpio.elf&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;runToEntryPoint&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;main&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;configFiles&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;interface/stlink.cfg&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;target/stm32f1x.cfg&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;toolchainPrefix&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;arm-none-eabi&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;svdFile&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;.pack/Keil/STM32F1xx_DFP.2.3.0/SVD/STM32F103xx.svd&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>这是VSCode中的debug选项配置文件&lt;code>launch.json&lt;/code>，通过配置该文件，我们可以在Debug选项中创建一个名为openocd的调试选项，执行该Debug命令，插件会自动将可执行文件烧写入STM32并打开gdb调试器，重点说明如下几个设置项：&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>&amp;quot;executable&amp;quot;&lt;/code>：该选项是调试所用的二进制可执行文件，该文件不为&lt;code>.elf&lt;/code>格式，与&lt;code>.hex&lt;/code>相比，&lt;code>elf&lt;/code>文件不仅包含代码段、数据段、符号表、重定位信息等程序运行必要的信息，还有更多的调试和符号信息，使得调试器能够更好地理解程序，为我们提供更丰富的调试功能；&lt;/li>
+&lt;li>&lt;code>&amp;quot;configFiles&amp;quot;&lt;/code>：这是OpenOCD的配置项，通常需要选择调试器和目标芯片两个选项，根据所用调试器和开发板STM32芯片名称选择即可；&lt;/li>
+&lt;li>&lt;code>&amp;quot;svdFile&amp;quot;&lt;/code>：来自芯片支持包内的寄存器信息，方便插件映射寄存器地址到名称，使我们能够更方便的定位寄存器信息。&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://img.ioyoi.me/20240118232558.webp" alt="image-20240118232555408">&lt;/p>
+&lt;p>运行调试，让我们来介绍一下常用的功能块：&lt;/p>
+&lt;ul>
+&lt;li>顶部调试栏：依次为重置设备、运行、单步运行、步入、步出、重启程序，他们的功能和调试常规C程序一致，需要说明的是重置设备相当于让STM32进行System Reset，而重启程序仅仅是清空寄存器和内存，并跳转至程序开头；&lt;/li>
+&lt;li>Variables：显示当前运行状态的变量，其中Local是正在执行函数内的局部变量，Global是全局变量，Static为常量，Register内则是Arm核内的寄存器信息，对于变量，我们不仅可以查看，还可以双击即时更改变量的值；&lt;/li>
+&lt;li>Watch：可以在该栏中添加某些特定变量以监视其值变化；&lt;/li>
+&lt;li>Call Stack：显示当前执行的调用栈，由于寻找当前语句的上下文，知道当前语句是由谁调用、调用后应返回哪里；&lt;/li>
+&lt;li>Breakpoints：管理断点，可以实时添加、删除、临时启用或禁用断点；&lt;/li>
+&lt;li>Xperipherals：&lt;strong>最为重要的一栏&lt;/strong>，显示了各个外设寄存器的名称和值，对于可以写的寄存器，还可以实时修改寄存器的值，同时，当值发生变化时，该寄存器会高亮显示。&lt;/li>
+&lt;/ul>
+&lt;p>当然，如果你十分熟悉gdb的使用，下方的Debug Terminal中也可以直接执行gdb语句。&lt;/p>
+&lt;h2 id="semihosting">Semihosting&lt;/h2>
+&lt;p>半主机模式是嵌入式调试中的一个重要技术，它通过嵌入式设备与开发主机系统的通信，将嵌入式设备的标准输入输出、文件读写重定向至主机，提供了一种在嵌入式系统中进行调试和交互的手段，填补了嵌入式设备显示输出设备的缺失。&lt;/p>
+&lt;p>在C语言中，通常使用&lt;code>stdio.h&lt;/code>中的&lt;code>printf&lt;/code>与&lt;code>scanf&lt;/code>函数进行与程序的输入输出交互，如果在STM32程序中调用该函数，编译烧写不会有任何显示，这是由于我们在编译时默认使用了&lt;code>--specs=nano.specs&lt;/code>参数，它会调用嵌入式系统使用的精简后的&lt;code>libc_nano&lt;/code>库，其中并未提供标准输入输出实现，还记得我们在第一次编译链接时遇到的Warning么：&lt;/p>
+&lt;pre tabindex="0">&lt;code>../arm-none-eabi/bin/ld.exe: ../lib/gcc/arm-none-eabi/13.2.1/thumb/v7-m/nofp\libc_nano.a(libc_a-closer.o): in function `_close_r&amp;#39;:
+closer.c:(.text._close_r+0xc): warning: _close is not implemented and will always fail
+../arm-none-eabi/bin/ld.exe: ../lib/gcc/arm-none-eabi/13.2.1/thumb/v7-m/nofp\libc_nano.a(libc_a-lseekr.o): in function `_lseek_r&amp;#39;:
+lseekr.c:(.text._lseek_r+0x10): warning: _lseek is not implemented and will always fail
+../arm-none-eabi/bin/ld.exe: ../lib/gcc/arm-none-eabi/13.2.1/thumb/v7-m/nofp\libc_nano.a(libc_a-readr.o): in function `_read_r&amp;#39;:
+readr.c:(.text._read_r+0x10): warning: _read is not implemented and will always fail
+../arm-none-eabi/bin/ld.exe: ../lib/gcc/arm-none-eabi/13.2.1/thumb/v7-m/nofp\libc_nano.a(libc_a-writer.o): in function `_write_r&amp;#39;:
+writer.c:(.text._write_r+0x10): warning: _write is not implemented and will always fail
+&lt;/code>&lt;/pre>&lt;p>在加入&lt;code>printf&lt;/code>语句后，还会多出两条：&lt;/p>
+&lt;pre tabindex="0">&lt;code>../arm-none-eabi/bin/ld.exe: ../lib/gcc/arm-none-eabi/13.2.1/thumb/v7-m/nofp\libc_nano.a(libc_a-fstatr.o): in function `_fstat_r&amp;#39;:
+fstatr.c:(.text._fstat_r+0xe): warning: _fstat is not implemented and will always fail
+../arm-none-eabi/bin/ld.exe: ../lib/gcc/arm-none-eabi/13.2.1/thumb/v7-m/nofp\libc_nano.a(libc_a-isattyr.o): in function `_isatty_r&amp;#39;:
+isattyr.c:(.text._isatty_r+0xc): warning: _isatty is not implemented and will always fail
+&lt;/code>&lt;/pre>&lt;p>这些Warning语句是告诉我们，&lt;code>libc_nano&lt;/code>中并未实现这些有关输入输出的函数，我们需要手动实现这些函数，先来看看它们的功能：&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>&lt;code>int _read(int f, char *ptr, int len);&lt;/code>&lt;/p>
+&lt;p>从输入流&lt;code>f&lt;/code>中读取字符串到&lt;code>ptr&lt;/code>出，最大长度为&lt;code>len&lt;/code>，返回读入的长度，出错时返回&lt;code>-1&lt;/code>；&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>int _write(int f, char *ptr, int len);&lt;/code>&lt;/p>
+&lt;p>向输出流&lt;code>f&lt;/code>中写入一个&lt;code>ptr&lt;/code>处长度为&lt;code>len&lt;/code>的字符串，返回输出的长度，出错时返回&lt;code>-1&lt;/code>；&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>int _lseek(int f, int ptr, int dir);&lt;/code>&lt;/p>
+&lt;p>移动读写指针到输入输出流&lt;code>f&lt;/code>的指定位置，向&lt;code>dir&lt;/code>方向移动&lt;code>ptr&lt;/code>，返回移动后的偏移量，出错时返回&lt;code>-1&lt;/code>；&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>int _close(int f);&lt;/code>&lt;/p>
+&lt;p>关闭输入输出流&lt;code>f&lt;/code>，成功返回&lt;code>0&lt;/code>，失败返回&lt;code>-1&lt;/code>；&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>int _isatty(int f);&lt;/code>&lt;/p>
+&lt;p>判断输入输出流&lt;code>f&lt;/code>是否关联到终端设备，若关联返回非零值，否则返回&lt;code>0&lt;/code>；&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>int _fstat(int f, struct stat *st);&lt;/code>&lt;/p>
+&lt;p>将文件&lt;code>f&lt;/code>信息写入&lt;code>st&lt;/code>，成功写入返回&lt;code>0&lt;/code>，出错返回&lt;code>1&lt;/code>。&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>将这些函数的输入输出重定向至开发主机有多种方式，例如使用&lt;a href="https://interrupt.memfault.com/blog/arm-semihosting">SWD的SVC命令&lt;/a>进行，但作者研究了好久没有成功，于是作者选择了使用UART接口的方式实现Semihosting，具体原理如下：&lt;/p>
+&lt;pre tabindex="0">&lt;code class="language-mermaid" data-lang="mermaid">graph LR;
+A[STM32]--printf--&amp;gt;B[UART接口]--UART_Send--&amp;gt;C[开发主机]
+C--UART_Receive--&amp;gt;B--scanf--&amp;gt;A
+&lt;/code>&lt;/pre>&lt;p>我们使用USART1外设来实现STM32与开发主机间的通信，由于我们尚未完成USART外设的学习，这里我们仅仅给出实现代码，不做过多说明，感兴趣的话可以配合注释进行学习，代码中只实现了标准输入输出的重定向，需要注意，在输入时我们使用了阻塞式的输入方法，当调用&lt;code>scanf&lt;/code>时，如果输入不满足格式要求，会一直阻塞在&lt;code>read&lt;/code>函数的循环中：&lt;/p>
+&lt;p>&lt;img src="https://img.ioyoi.me/20240119002505.webp" alt="9-1 串口发送" title="接线图（无需连接显示屏和B6、B7）">&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt"> 10
+&lt;/span>&lt;span class="lnt"> 11
+&lt;/span>&lt;span class="lnt"> 12
+&lt;/span>&lt;span class="lnt"> 13
+&lt;/span>&lt;span class="lnt"> 14
+&lt;/span>&lt;span class="lnt"> 15
+&lt;/span>&lt;span class="lnt"> 16
+&lt;/span>&lt;span class="lnt"> 17
+&lt;/span>&lt;span class="lnt"> 18
+&lt;/span>&lt;span class="lnt"> 19
+&lt;/span>&lt;span class="lnt"> 20
+&lt;/span>&lt;span class="lnt"> 21
+&lt;/span>&lt;span class="lnt"> 22
+&lt;/span>&lt;span class="lnt"> 23
+&lt;/span>&lt;span class="lnt"> 24
+&lt;/span>&lt;span class="lnt"> 25
+&lt;/span>&lt;span class="lnt"> 26
+&lt;/span>&lt;span class="lnt"> 27
+&lt;/span>&lt;span class="lnt"> 28
+&lt;/span>&lt;span class="lnt"> 29
+&lt;/span>&lt;span class="lnt"> 30
+&lt;/span>&lt;span class="lnt"> 31
+&lt;/span>&lt;span class="lnt"> 32
+&lt;/span>&lt;span class="lnt"> 33
+&lt;/span>&lt;span class="lnt"> 34
+&lt;/span>&lt;span class="lnt"> 35
+&lt;/span>&lt;span class="lnt"> 36
+&lt;/span>&lt;span class="lnt"> 37
+&lt;/span>&lt;span class="lnt"> 38
+&lt;/span>&lt;span class="lnt"> 39
+&lt;/span>&lt;span class="lnt"> 40
+&lt;/span>&lt;span class="lnt"> 41
+&lt;/span>&lt;span class="lnt"> 42
+&lt;/span>&lt;span class="lnt"> 43
+&lt;/span>&lt;span class="lnt"> 44
+&lt;/span>&lt;span class="lnt"> 45
+&lt;/span>&lt;span class="lnt"> 46
+&lt;/span>&lt;span class="lnt"> 47
+&lt;/span>&lt;span class="lnt"> 48
+&lt;/span>&lt;span class="lnt"> 49
+&lt;/span>&lt;span class="lnt"> 50
+&lt;/span>&lt;span class="lnt"> 51
+&lt;/span>&lt;span class="lnt"> 52
+&lt;/span>&lt;span class="lnt"> 53
+&lt;/span>&lt;span class="lnt"> 54
+&lt;/span>&lt;span class="lnt"> 55
+&lt;/span>&lt;span class="lnt"> 56
+&lt;/span>&lt;span class="lnt"> 57
+&lt;/span>&lt;span class="lnt"> 58
+&lt;/span>&lt;span class="lnt"> 59
+&lt;/span>&lt;span class="lnt"> 60
+&lt;/span>&lt;span class="lnt"> 61
+&lt;/span>&lt;span class="lnt"> 62
+&lt;/span>&lt;span class="lnt"> 63
+&lt;/span>&lt;span class="lnt"> 64
+&lt;/span>&lt;span class="lnt"> 65
+&lt;/span>&lt;span class="lnt"> 66
+&lt;/span>&lt;span class="lnt"> 67
+&lt;/span>&lt;span class="lnt"> 68
+&lt;/span>&lt;span class="lnt"> 69
+&lt;/span>&lt;span class="lnt"> 70
+&lt;/span>&lt;span class="lnt"> 71
+&lt;/span>&lt;span class="lnt"> 72
+&lt;/span>&lt;span class="lnt"> 73
+&lt;/span>&lt;span class="lnt"> 74
+&lt;/span>&lt;span class="lnt"> 75
+&lt;/span>&lt;span class="lnt"> 76
+&lt;/span>&lt;span class="lnt"> 77
+&lt;/span>&lt;span class="lnt"> 78
+&lt;/span>&lt;span class="lnt"> 79
+&lt;/span>&lt;span class="lnt"> 80
+&lt;/span>&lt;span class="lnt"> 81
+&lt;/span>&lt;span class="lnt"> 82
+&lt;/span>&lt;span class="lnt"> 83
+&lt;/span>&lt;span class="lnt"> 84
+&lt;/span>&lt;span class="lnt"> 85
+&lt;/span>&lt;span class="lnt"> 86
+&lt;/span>&lt;span class="lnt"> 87
+&lt;/span>&lt;span class="lnt"> 88
+&lt;/span>&lt;span class="lnt"> 89
+&lt;/span>&lt;span class="lnt"> 90
+&lt;/span>&lt;span class="lnt"> 91
+&lt;/span>&lt;span class="lnt"> 92
+&lt;/span>&lt;span class="lnt"> 93
+&lt;/span>&lt;span class="lnt"> 94
+&lt;/span>&lt;span class="lnt"> 95
+&lt;/span>&lt;span class="lnt"> 96
+&lt;/span>&lt;span class="lnt"> 97
+&lt;/span>&lt;span class="lnt"> 98
+&lt;/span>&lt;span class="lnt"> 99
+&lt;/span>&lt;span class="lnt">100
+&lt;/span>&lt;span class="lnt">101
+&lt;/span>&lt;span class="lnt">102
+&lt;/span>&lt;span class="lnt">103
+&lt;/span>&lt;span class="lnt">104
+&lt;/span>&lt;span class="lnt">105
+&lt;/span>&lt;span class="lnt">106
+&lt;/span>&lt;span class="lnt">107
+&lt;/span>&lt;span class="lnt">108
+&lt;/span>&lt;span class="lnt">109
+&lt;/span>&lt;span class="lnt">110
+&lt;/span>&lt;span class="lnt">111
+&lt;/span>&lt;span class="lnt">112
+&lt;/span>&lt;span class="lnt">113
+&lt;/span>&lt;span class="lnt">114
+&lt;/span>&lt;span class="lnt">115
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="line">&lt;span class="cl">&lt;span class="cp">#include&lt;/span> &lt;span class="cpf">&amp;#34;stm32f10x.h&amp;#34;&lt;/span>&lt;span class="cp">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">#include&lt;/span> &lt;span class="cpf">&amp;lt;errno.h&amp;gt;&lt;/span>&lt;span class="cp">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">#include&lt;/span> &lt;span class="cpf">&amp;lt;sys/stat.h&amp;gt;&lt;/span>&lt;span class="cp">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">#include&lt;/span> &lt;span class="cpf">&amp;lt;stdio.h&amp;gt;&lt;/span>&lt;span class="cp">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">#define STDIN_FILENO 0
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">#define STDOUT_FILENO 1
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">#define STDERR_FILENO 2
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">void&lt;/span> &lt;span class="nf">Semihosting_Init&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">void&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// UART1复用引脚PA9（TX）、PA10（RX），需要开启AFIO、GPIOA与UART1时钟
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nf">RCC_APB2PeriphClockCmd&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">RCC_APB2Periph_AFIO&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="n">RCC_APB2Periph_GPIOA&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="n">RCC_APB2Periph_USART1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">ENABLE&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 配置USART_TX（PA9）为Alternate function push-pull
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">GPIO_InitTypeDef&lt;/span> &lt;span class="n">GPIO_InitStructure&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">GPIO_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">GPIO_Pin&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">GPIO_Pin_9&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">GPIO_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">GPIO_Mode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">GPIO_Mode_AF_PP&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">GPIO_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">GPIO_Speed&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">GPIO_Speed_50MHz&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">GPIO_Init&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">GPIOA&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">GPIO_InitStructure&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 配置USART_RX（PA10）为 Input floating
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">GPIO_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">GPIO_Pin&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">GPIO_Pin_10&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">GPIO_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">GPIO_Mode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">GPIO_Mode_IN_FLOATING&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">GPIO_Init&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">GPIOA&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">GPIO_InitStructure&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 配置USART1
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">USART_InitTypeDef&lt;/span> &lt;span class="n">USART_InitStructure&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">USART_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">USART_BaudRate&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">115200&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">USART_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">USART_WordLength&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">USART_WordLength_8b&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">USART_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">USART_StopBits&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">USART_StopBits_1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">USART_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">USART_Parity&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">USART_Parity_No&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">USART_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">USART_Mode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">USART_Mode_Rx&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="n">USART_Mode_Tx&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">USART_InitStructure&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">USART_HardwareFlowControl&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">USART_HardwareFlowControl_None&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">USART_Init&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">USART1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">USART_InitStructure&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 使能USART1
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nf">USART_Cmd&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">USART1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">ENABLE&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 禁用缓冲区，一有输出立即发送
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nf">setvbuf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stdout&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nb">NULL&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">_IONBF&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 标准输入通过UART_ReceiveData读入，每次仅能读取一个字符
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="nf">_read&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">char&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">ptr&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">len&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">STDIN_FILENO&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">while&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nf">USART_GetFlagStatus&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">USART1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">USART_FLAG_RXNE&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">RESET&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ptr&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nf">USART_ReceiveData&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">USART1&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">errno&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">EBADF&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 标准输出通过UART_SendData逐字符发出
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="nf">_write&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">char&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">ptr&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">len&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">STDOUT_FILENO&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="n">f&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">STDERR_FILENO&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kt">int&lt;/span> &lt;span class="n">i&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">i&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="n">len&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">i&lt;/span>&lt;span class="o">++&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">USART_SendData&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">USART1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">ptr&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">]);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">while&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nf">USART_GetFlagStatus&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">USART1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">USART_FLAG_TXE&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">RESET&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">len&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">errno&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">EBADF&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 禁用读写指针移动
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="nf">_lseek&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">ptr&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">dir&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="kt">void&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="kt">void&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">ptr&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="kt">void&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">dir&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">errno&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">EBADF&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 假关闭，直接返回关闭成功
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="nf">_close&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span> &lt;span class="o">&amp;gt;=&lt;/span> &lt;span class="n">STDIN_FILENO&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="n">f&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">STDERR_FILENO&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">errno&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">EBADF&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 仅标准输入输出与终端绑定，其余均不可用
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="nf">_isatty&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span> &lt;span class="o">&amp;gt;=&lt;/span> &lt;span class="n">STDIN_FILENO&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="n">f&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">STDERR_FILENO&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">errno&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">EBADF&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 标准输入输出为显示字符的终端设备，其余输入输出无信息
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="nf">_fstat&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="k">struct&lt;/span> &lt;span class="n">stat&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">st&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span> &lt;span class="o">&amp;gt;=&lt;/span> &lt;span class="n">STDIN_FILENO&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="n">f&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">STDERR_FILENO&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">st&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="n">st_mode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">S_IFCHR&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">errno&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">EBADF&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>此时引入该头文件，并在主函数开头初始化Semihosting接口，即可在后续程序中使用&lt;code>printf&lt;/code>与&lt;code>scanf&lt;/code>函数了，输入输出可通过串口调试小助手进行，串口助手的配置需要与&lt;code>USART_InitStructure&lt;/code>中配置一致，这里推荐使用VS Code中的&lt;a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-serial-monitor">Serial Monitor&lt;/a>插件，这样我们可以在VS Code中实现一站式开发。&lt;/p>
+&lt;p>&lt;img src="https://img.ioyoi.me/20240119004337.webp" alt="image-20240119004334502">&lt;/p>
+&lt;h2 id="其他调试方法">其他调试方法&lt;/h2>
+&lt;p>在江协科技的教程中，推荐使用LED显示屏将调试信息打印到屏幕上进行输出，但我更加喜欢这种配合串口的调试方式，一则LED显示屏没有记录功能，二则显示内容有限，不如通过串口打印至主机来得方便，不过萝卜青菜各有所爱，如果你更加喜欢外接屏幕显示输出的方案，可以参照B站教程进行学习。&lt;/p>
+&lt;p>在本节教程中，我们简单介绍了gdb调试和输入输出调试的实现及使用，在下一节中，我们将继续学习STM32的外设使用。&lt;/p></description><category domain="https://ioyoi.me/tech/">tech</category><category domain="https://ioyoi.me/tags/stm32/">stm32</category><category domain="https://ioyoi.me/tags/tutorial/">tutorial</category></item><item><title>Learn STM32 the Hard Way·2 认识GPIO</title><link>https://ioyoi.me/tech/learn-stm32-2/</link><guid isPermaLink="true">https://ioyoi.me/tech/learn-stm32-2/</guid><pubDate>Mon, 15 Jan 2024 02:31:06 +0800</pubDate><author>3verness@gmail.com (EvernessW)</author><copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright><description>&lt;h2 id="重新认识stm32">重新认识STM32&lt;/h2>
 &lt;p>成功点亮第一颗LED灯后，我们可以重新来认识一下STM32，并问问自己，当学习STM32时，我们究竟要学些什么。&lt;/p>
 &lt;p>首先，STM32是一类Micro Controller Unit，他不仅集成了处理器、内存、闪存，还集成了诸多外设，包括基本GPIO、定时器TIM、USART串口、ADC模数转换器等等等等，这些外设通过总线与Arm核通信，接受处理器的控制。作为处理器运算时，STM32开发和传统C开发区别不大，我们需要特别学习的便是如何控制这些外设。&lt;/p>
 &lt;p>&lt;img src="https://img.ioyoi.me/20240111172908.webp" alt="image-20240111172906896" title="stm32系统结构">&lt;/p>
